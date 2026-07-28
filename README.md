@@ -156,18 +156,7 @@ rm -f ~/.cache/pokemon-fastfetch/pokedex.json
 ./build-pokedex-cache.sh
 ```
 
-## Estructura
-
-```text
-pokemon-fastfetch/
-├── build-pokedex-cache.sh
-├── random-fastfetch.sh
-├── README.md
-├── LICENSE
-└── .gitignore
-```
-
-## Licencia
+# Licencia
 
 Este proyecto utiliza la licencia MIT.
 

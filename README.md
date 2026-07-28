@@ -51,13 +51,13 @@ sudo pacman -S ttf-jetbrains-mono-nerd
 Este proyecto utiliza las imágenes de:
 
 ```text
-https://github.com/FuzzyGrim/pokimg
+git clone https://github.com/FuzzyGrim/pokimg
 ```
 
 Las imágenes deben quedar en:
 
 ```text
-~/.local/share/pokimg/images
+~/pokimg/images
 ```
 
 ## Instalar Pokémon Fastfetch

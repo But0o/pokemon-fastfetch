@@ -2,587 +2,412 @@
 
 set -Eeuo pipefail
 
-# ─────────────────────────────────────────────
-# Rutas
-# ─────────────────────────────────────────────
-
-SCRIPT_DIR="$(
-    cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
-    pwd
-)"
-
-POKEMON_DIR="${POKEMON_DIR:-$HOME/.local/share/pokimg/images}"
+# ────────────────────────────────────────────────────────────────
+# Pokémon Fastfetch v2
+# Completa la caché existente con estadísticas y habilidades.
+#
+# La conexión a PokeAPI se usa solamente al generar la caché.
+# El script principal no necesitará internet.
+# ────────────────────────────────────────────────────────────────
 
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
 CACHE_FILE="$CACHE_DIR/pokedex.json"
-TEMP_FILE="$CACHE_DIR/pokedex.tmp.json"
+TEMP_DIR="$CACHE_DIR/build-v2"
+TEMP_JSONL="$TEMP_DIR/pokemon.jsonl"
+NEW_CACHE="$TEMP_DIR/pokedex-v2.json"
+
+API_BASE="https://pokeapi.co/api/v2"
 
 mkdir -p "$CACHE_DIR"
+mkdir -p "$TEMP_DIR"
 
-# ─────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────
+# Colores
+# ────────────────────────────────────────────────────────────────
+
+RED=$'\033[31m'
+GREEN=$'\033[32m'
+YELLOW=$'\033[33m'
+CYAN=$'\033[36m'
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
+
+# ────────────────────────────────────────────────────────────────
 # Dependencias
-# ─────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────
 
-DEPENDENCIES=(
-    curl
+dependencies=(
     jq
-    find
-    sort
-    sed
-    awk
-    basename
+    curl
 )
 
-for command_name in "${DEPENDENCIES[@]}"; do
-    if ! command -v "$command_name" >/dev/null 2>&1; then
-        printf 'Falta instalar: %s\n' "$command_name"
+for dependency in "${dependencies[@]}"; do
+    if ! command -v "$dependency" >/dev/null 2>&1; then
+        printf '%sFalta instalar: %s%s\n' \
+            "$RED" \
+            "$dependency" \
+            "$RESET"
+
         exit 1
     fi
 done
 
-if [[ ! -d "$POKEMON_DIR" ]]; then
-    echo "No existe la carpeta de imágenes:"
-    echo "$POKEMON_DIR"
-    echo
-    echo "Instalá pokimg o ejecutá:"
-    echo
-    echo 'POKEMON_DIR="/ruta/a/images" ./build-pokedex-cache.sh'
-    exit 1
-fi
-
-# ─────────────────────────────────────────────
-# Crear JSON inicial
-# ─────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────
+# Comprobar caché actual
+# ────────────────────────────────────────────────────────────────
 
 if [[ ! -s "$CACHE_FILE" ]]; then
-    printf '{}\n' > "$CACHE_FILE"
-elif ! jq empty "$CACHE_FILE" >/dev/null 2>&1; then
-    echo "La caché existente está dañada:"
+    printf '%sNo existe la caché actual:%s\n' \
+        "$RED" \
+        "$RESET"
+
     echo "$CACHE_FILE"
     echo
-    echo "Eliminándola para generar una nueva."
-    printf '{}\n' > "$CACHE_FILE"
-fi
+    echo "Primero ejecutá tu generador actual:"
+    echo
+    echo "  ~/pokemon-fastfetch/build-pokedex-cache.sh"
 
-# ─────────────────────────────────────────────
-# Limpiar archivo temporal al salir
-# ─────────────────────────────────────────────
-
-cleanup() {
-    rm -f "$TEMP_FILE"
-}
-
-trap cleanup EXIT
-
-# ─────────────────────────────────────────────
-# Normalizar nombres para PokeAPI
-# ─────────────────────────────────────────────
-
-normalize_name() {
-    local name="$1"
-
-    name="${name,,}"
-
-    name="$(
-        printf '%s' "$name" |
-            sed \
-                -e 's/[[:space:]_]/-/g' \
-                -e "s/'//g" \
-                -e 's/\.//g' \
-                -e 's/♀/-f/g' \
-                -e 's/♂/-m/g' \
-                -e 's/--*/-/g' \
-                -e 's/^-//' \
-                -e 's/-$//'
-    )"
-
-    case "$name" in
-        mrmime | mr-mime)
-            name="mr-mime"
-            ;;
-
-        mimejr | mime-jr)
-            name="mime-jr"
-            ;;
-
-        mrrime | mr-rime)
-            name="mr-rime"
-            ;;
-
-        nidoranf | nidoran-f)
-            name="nidoran-f"
-            ;;
-
-        nidoranm | nidoran-m)
-            name="nidoran-m"
-            ;;
-
-        farfetchd | farfetch-d)
-            name="farfetchd"
-            ;;
-
-        sirfetchd | sirfetch-d)
-            name="sirfetchd"
-            ;;
-
-        hooh | ho-oh)
-            name="ho-oh"
-            ;;
-
-        porygonz | porygon-z)
-            name="porygon-z"
-            ;;
-
-        typenull | type-null)
-            name="type-null"
-            ;;
-
-        jangmoo | jangmo-o)
-            name="jangmo-o"
-            ;;
-
-        hakamoo | hakamo-o)
-            name="hakamo-o"
-            ;;
-
-        kommoo | kommo-o)
-            name="kommo-o"
-            ;;
-
-        tapukoko | tapu-koko)
-            name="tapu-koko"
-            ;;
-
-        tapulele | tapu-lele)
-            name="tapu-lele"
-            ;;
-
-        tapubulu | tapu-bulu)
-            name="tapu-bulu"
-            ;;
-
-        tapufini | tapu-fini)
-            name="tapu-fini"
-            ;;
-    esac
-
-    printf '%s' "$name"
-}
-
-# ─────────────────────────────────────────────
-# Nombre visible como alternativa
-# ─────────────────────────────────────────────
-
-display_name() {
-    local name="$1"
-
-    printf '%s' "$name" |
-        sed 's/-/ /g' |
-        awk '{
-            for (i = 1; i <= NF; i++) {
-                $i = toupper(substr($i, 1, 1)) substr($i, 2)
-            }
-
-            print
-        }'
-}
-
-# ─────────────────────────────────────────────
-# Región según generación
-# ─────────────────────────────────────────────
-
-region_from_generation() {
-    case "$1" in
-        generation-i)
-            printf 'Kanto'
-            ;;
-
-        generation-ii)
-            printf 'Johto'
-            ;;
-
-        generation-iii)
-            printf 'Hoenn'
-            ;;
-
-        generation-iv)
-            printf 'Sinnoh'
-            ;;
-
-        generation-v)
-            printf 'Unova'
-            ;;
-
-        generation-vi)
-            printf 'Kalos'
-            ;;
-
-        generation-vii)
-            printf 'Alola'
-            ;;
-
-        generation-viii)
-            printf 'Galar'
-            ;;
-
-        generation-ix)
-            printf 'Paldea'
-            ;;
-
-        *)
-            printf 'Desconocida'
-            ;;
-    esac
-}
-
-# ─────────────────────────────────────────────
-# Número de generación
-# ─────────────────────────────────────────────
-
-generation_number() {
-    case "$1" in
-        generation-i)
-            printf '1'
-            ;;
-
-        generation-ii)
-            printf '2'
-            ;;
-
-        generation-iii)
-            printf '3'
-            ;;
-
-        generation-iv)
-            printf '4'
-            ;;
-
-        generation-v)
-            printf '5'
-            ;;
-
-        generation-vi)
-            printf '6'
-            ;;
-
-        generation-vii)
-            printf '7'
-            ;;
-
-        generation-viii)
-            printf '8'
-            ;;
-
-        generation-ix)
-            printf '9'
-            ;;
-
-        *)
-            printf '0'
-            ;;
-    esac
-}
-
-# ─────────────────────────────────────────────
-# Descargar JSON con reintentos
-# ─────────────────────────────────────────────
-
-fetch_json() {
-    local url="$1"
-
-    curl \
-        --silent \
-        --show-error \
-        --fail \
-        --location \
-        --retry 3 \
-        --retry-delay 1 \
-        --connect-timeout 10 \
-        --max-time 30 \
-        "$url" \
-        2>/dev/null
-}
-
-# ─────────────────────────────────────────────
-# Buscar imágenes
-# ─────────────────────────────────────────────
-
-mapfile -d '' -t IMAGES < <(
-    find "$POKEMON_DIR" \
-        -maxdepth 1 \
-        -type f \
-        \( \
-            -iname '*.png' \
-            -o -iname '*.jpg' \
-            -o -iname '*.jpeg' \
-            -o -iname '*.webp' \
-        \) \
-        -print0 |
-        sort -z
-)
-
-TOTAL="${#IMAGES[@]}"
-
-if (( TOTAL == 0 )); then
-    echo "No se encontraron imágenes compatibles en:"
-    echo "$POKEMON_DIR"
     exit 1
 fi
 
-CURRENT=0
-ADDED=0
-CACHED=0
-FAILED=0
+if ! jq empty "$CACHE_FILE" >/dev/null 2>&1; then
+    printf '%sEl archivo JSON actual está dañado:%s\n' \
+        "$RED" \
+        "$RESET"
 
-echo
-echo "Generador de caché Pokémon Fastfetch"
-echo "────────────────────────────────────────"
-echo "Imágenes: $TOTAL"
-echo "Origen:   $POKEMON_DIR"
-echo "Caché:    $CACHE_FILE"
-echo
-echo "Podés detenerlo con Ctrl + C y continuarlo después."
-echo
-
-# ─────────────────────────────────────────────
-# Procesar imágenes
-# ─────────────────────────────────────────────
-
-for image_path in "${IMAGES[@]}"; do
-    ((CURRENT += 1))
-
-    filename="$(basename "$image_path")"
-    raw_name="${filename%.*}"
-    api_name="$(normalize_name "$raw_name")"
-
-    printf '[%4d/%4d] %-28s ' "$CURRENT" "$TOTAL" "$api_name"
-
-    if jq -e \
-        --arg pokemon "$api_name" \
-        'has($pokemon)' \
-        "$CACHE_FILE" \
-        >/dev/null 2>&1; then
-
-        echo "ya guardado"
-        ((CACHED += 1))
-        continue
-    fi
-
-    pokemon_json="$(
-        fetch_json \
-            "https://pokeapi.co/api/v2/pokemon/$api_name" ||
-            true
-    )"
-
-    if [[ -z "$pokemon_json" ]] ||
-        ! jq -e '.id and .species.url' \
-            >/dev/null 2>&1 <<< "$pokemon_json"; then
-
-        echo "no encontrado"
-        ((FAILED += 1))
-        continue
-    fi
-
-    species_url="$(
-        jq -r '.species.url // empty' \
-            <<< "$pokemon_json"
-    )"
-
-    species_json="$(
-        fetch_json "$species_url" ||
-            true
-    )"
-
-    if [[ -z "$species_json" ]] ||
-        ! jq -e '.generation.name' \
-            >/dev/null 2>&1 <<< "$species_json"; then
-
-        echo "falló species"
-        ((FAILED += 1))
-        continue
-    fi
-
-    pokemon_id="$(
-        jq -r '.id' <<< "$pokemon_json"
-    )"
-
-    printf -v pokemon_number '%03d' "$pokemon_id"
-
-    pokemon_display_name="$(
-        jq -r '
-            [
-                .names[]
-                | select(.language.name == "es")
-                | .name
-            ][0] // empty
-        ' <<< "$species_json"
-    )"
-
-    if [[ -z "$pokemon_display_name" ]]; then
-        pokemon_display_name="$(display_name "$api_name")"
-    fi
-
-    types_json="$(
-        jq '
-            [
-                .types
-                | sort_by(.slot)[]
-                | .type.name
-            ]
-        ' <<< "$pokemon_json"
-    )"
-
-    abilities_json="$(
-        jq '
-            [
-                .abilities
-                | sort_by(.slot)[]
-                | .ability.name
-            ]
-        ' <<< "$pokemon_json"
-    )"
-
-    generation_name="$(
-        jq -r \
-            '.generation.name // "unknown"' \
-            <<< "$species_json"
-    )"
-
-    generation="$(generation_number "$generation_name")"
-    region="$(region_from_generation "$generation_name")"
-
-    height_dm="$(
-        jq -r '.height // 0' <<< "$pokemon_json"
-    )"
-
-    weight_hg="$(
-        jq -r '.weight // 0' <<< "$pokemon_json"
-    )"
-
-    height_m="$(
-        awk -v value="$height_dm" \
-            'BEGIN {printf "%.1f", value / 10}'
-    )"
-
-    weight_kg="$(
-        awk -v value="$weight_hg" \
-            'BEGIN {printf "%.1f", value / 10}'
-    )"
-
-    color="$(
-        jq -r \
-            '.color.name // "unknown"' \
-            <<< "$species_json"
-    )"
-
-    habitat="$(
-        jq -r \
-            '.habitat.name // "unknown"' \
-            <<< "$species_json"
-    )"
-
-    legendary="$(
-        jq -r \
-            '.is_legendary // false' \
-            <<< "$species_json"
-    )"
-
-    mythical="$(
-        jq -r \
-            '.is_mythical // false' \
-            <<< "$species_json"
-    )"
-
-    baby="$(
-        jq -r \
-            '.is_baby // false' \
-            <<< "$species_json"
-    )"
-
-    # Solo se guarda el nombre del archivo.
-    # Esto permite usar el repositorio en cualquier PC.
-    image_filename="$(basename "$image_path")"
-
-    entry="$(
-        jq -n \
-            --arg key "$api_name" \
-            --argjson id "$pokemon_id" \
-            --arg number "$pokemon_number" \
-            --arg name "$pokemon_display_name" \
-            --arg api_name "$api_name" \
-            --arg image "$image_filename" \
-            --argjson types "$types_json" \
-            --argjson abilities "$abilities_json" \
-            --arg region "$region" \
-            --argjson generation "$generation" \
-            --argjson height "$height_m" \
-            --argjson weight "$weight_kg" \
-            --arg color "$color" \
-            --arg habitat "$habitat" \
-            --argjson legendary "$legendary" \
-            --argjson mythical "$mythical" \
-            --argjson baby "$baby" \
-            '{
-                ($key): {
-                    id: $id,
-                    number: $number,
-                    name: $name,
-                    api_name: $api_name,
-                    image: $image,
-                    types: $types,
-                    abilities: $abilities,
-                    region: $region,
-                    generation: $generation,
-                    height_m: $height,
-                    weight_kg: $weight,
-                    color: $color,
-                    habitat: $habitat,
-                    legendary: $legendary,
-                    mythical: $mythical,
-                    baby: $baby
-                }
-            }'
-    )"
-
-    if ! jq \
-        --argjson entry "$entry" \
-        '. + $entry' \
-        "$CACHE_FILE" \
-        > "$TEMP_FILE"; then
-
-        echo "error escribiendo"
-        ((FAILED += 1))
-        continue
-    fi
-
-    mv "$TEMP_FILE" "$CACHE_FILE"
-
-    echo "guardado"
-    ((ADDED += 1))
-
-    sleep 0.12
-done
-
-# ─────────────────────────────────────────────
-# Ordenar por número de Pokédex
-# ─────────────────────────────────────────────
-
-if jq \
-    'to_entries | sort_by(.value.id) | from_entries' \
-    "$CACHE_FILE" \
-    > "$TEMP_FILE"; then
-
-    mv "$TEMP_FILE" "$CACHE_FILE"
+    echo "$CACHE_FILE"
+    exit 1
 fi
 
+# ────────────────────────────────────────────────────────────────
+# Copia de seguridad
+# ────────────────────────────────────────────────────────────────
+
+BACKUP_FILE="$CACHE_DIR/pokedex-backup-$(date +%Y%m%d-%H%M%S).json"
+
+cp "$CACHE_FILE" "$BACKUP_FILE"
+
+printf '%sCopia de seguridad creada:%s\n' \
+    "$CYAN" \
+    "$RESET"
+
+echo "$BACKUP_FILE"
 echo
-echo "────────────────────────────────────────"
-echo "Caché terminada"
+
+# Limpiar resultado temporal anterior.
+: > "$TEMP_JSONL"
+
+TOTAL="$(
+    jq 'length' "$CACHE_FILE"
+)"
+
+CURRENT=0
+FAILED=0
+
+printf '%sPokémon encontrados: %s%s\n\n' \
+    "$BOLD" \
+    "$TOTAL" \
+    "$RESET"
+
+# ────────────────────────────────────────────────────────────────
+# Procesar cada Pokémon
+# ────────────────────────────────────────────────────────────────
+
+while IFS= read -r KEY; do
+    CURRENT=$((CURRENT + 1))
+
+    EXISTING_ENTRY="$(
+        jq -c \
+            --arg key "$KEY" \
+            '.[$key]' \
+            "$CACHE_FILE"
+    )"
+
+    ID="$(
+        jq -r '.id // 0' <<< "$EXISTING_ENTRY"
+    )"
+
+    NAME="$(
+        jq -r '
+            .name
+            // .api_name
+            // "Desconocido"
+        ' <<< "$EXISTING_ENTRY"
+    )"
+
+    printf '\r%s[%4d/%4d]%s %-28s' \
+        "$CYAN" \
+        "$CURRENT" \
+        "$TOTAL" \
+        "$RESET" \
+        "$NAME"
+
+    # Si ya tiene todas las estadísticas y habilidades,
+    # reutilizamos la entrada sin consultar internet.
+    HAS_COMPLETE_DATA="$(
+        jq -r '
+            (
+                (.stats.hp // null) != null
+                and
+                (.stats.attack // null) != null
+                and
+                (.stats.defense // null) != null
+                and
+                (.stats.special_attack // null) != null
+                and
+                (.stats.special_defense // null) != null
+                and
+                (.stats.speed // null) != null
+                and
+                ((.abilities // []) | length > 0)
+            )
+        ' <<< "$EXISTING_ENTRY"
+    )"
+
+    if [[ "$HAS_COMPLETE_DATA" == "true" ]]; then
+        jq -cn \
+            --arg key "$KEY" \
+            --argjson value "$EXISTING_ENTRY" \
+            '{
+                key: $key,
+                value: $value
+            }' >> "$TEMP_JSONL"
+
+        continue
+    fi
+
+    API_RESPONSE="$(
+        curl \
+            --silent \
+            --show-error \
+            --fail \
+            --retry 3 \
+            --retry-delay 1 \
+            --connect-timeout 8 \
+            --max-time 20 \
+            "$API_BASE/pokemon/$ID" \
+            2>/dev/null ||
+            true
+    )"
+
+    if [[ -z "$API_RESPONSE" ]]; then
+        FAILED=$((FAILED + 1))
+
+        jq -cn \
+            --arg key "$KEY" \
+            --argjson value "$EXISTING_ENTRY" \
+            '{
+                key: $key,
+                value: $value
+            }' >> "$TEMP_JSONL"
+
+        continue
+    fi
+
+    API_DATA="$(
+        jq -c '
+            {
+                stats: {
+                    hp: (
+                        [
+                            .stats[]
+                            | select(.stat.name == "hp")
+                            | .base_stat
+                        ][0] // 0
+                    ),
+
+                    attack: (
+                        [
+                            .stats[]
+                            | select(.stat.name == "attack")
+                            | .base_stat
+                        ][0] // 0
+                    ),
+
+                    defense: (
+                        [
+                            .stats[]
+                            | select(.stat.name == "defense")
+                            | .base_stat
+                        ][0] // 0
+                    ),
+
+                    special_attack: (
+                        [
+                            .stats[]
+                            | select(.stat.name == "special-attack")
+                            | .base_stat
+                        ][0] // 0
+                    ),
+
+                    special_defense: (
+                        [
+                            .stats[]
+                            | select(.stat.name == "special-defense")
+                            | .base_stat
+                        ][0] // 0
+                    ),
+
+                    speed: (
+                        [
+                            .stats[]
+                            | select(.stat.name == "speed")
+                            | .base_stat
+                        ][0] // 0
+                    )
+                },
+
+                abilities: (
+                    [
+                        .abilities[]
+                        | .ability.name
+                    ]
+                ),
+
+                base_experience: (
+                    .base_experience // 0
+                ),
+
+                height_m: (
+                    (.height // 0) / 10
+                ),
+
+                weight_kg: (
+                    (.weight // 0) / 10
+                )
+            }
+        ' <<< "$API_RESPONSE"
+    )"
+
+    MERGED_ENTRY="$(
+        jq -cn \
+            --argjson existing "$EXISTING_ENTRY" \
+            --argjson api "$API_DATA" \
+            '
+                $existing
+                *
+                $api
+            '
+    )"
+
+    jq -cn \
+        --arg key "$KEY" \
+        --argjson value "$MERGED_ENTRY" \
+        '{
+            key: $key,
+            value: $value
+        }' >> "$TEMP_JSONL"
+
+    # Pequeña pausa para no saturar la API.
+    sleep 0.05
+
+done < <(
+    jq -r '
+        to_entries
+        | sort_by(.value.id // 99999)
+        | .[].key
+    ' "$CACHE_FILE"
+)
+
+printf '\n\n'
+
+# ────────────────────────────────────────────────────────────────
+# Construir JSON final
+# ────────────────────────────────────────────────────────────────
+
+jq -s '
+    from_entries
+' "$TEMP_JSONL" > "$NEW_CACHE"
+
+if ! jq empty "$NEW_CACHE" >/dev/null 2>&1; then
+    printf '%sNo se pudo generar la nueva caché.%s\n' \
+        "$RED" \
+        "$RESET"
+
+    exit 1
+fi
+
+NEW_TOTAL="$(
+    jq 'length' "$NEW_CACHE"
+)"
+
+if [[ "$NEW_TOTAL" -ne "$TOTAL" ]]; then
+    printf '%sLa cantidad de Pokémon no coincide.%s\n' \
+        "$RED" \
+        "$RESET"
+
+    echo "Original: $TOTAL"
+    echo "Nueva:    $NEW_TOTAL"
+
+    exit 1
+fi
+
+# Guardado atómico.
+mv "$NEW_CACHE" "$CACHE_FILE"
+
+# ────────────────────────────────────────────────────────────────
+# Validación
+# ────────────────────────────────────────────────────────────────
+
+COMPLETE_COUNT="$(
+    jq '
+        [
+            .[]
+            | select(
+                (.stats.hp // null) != null
+                and
+                (.stats.attack // null) != null
+                and
+                (.stats.defense // null) != null
+                and
+                (.stats.special_attack // null) != null
+                and
+                (.stats.special_defense // null) != null
+                and
+                (.stats.speed // null) != null
+                and
+                ((.abilities // []) | length > 0)
+            )
+        ]
+        | length
+    ' "$CACHE_FILE"
+)"
+
 echo
-echo "Nuevos:       $ADDED"
-echo "Ya guardados: $CACHED"
-echo "Fallidos:     $FAILED"
-echo "Total JSON:   $(jq 'length' "$CACHE_FILE")"
+printf '%sCaché v2 generada correctamente.%s\n' \
+    "$GREEN" \
+    "$RESET"
+
 echo
 echo "Archivo:"
 echo "$CACHE_FILE"
+
+echo
+echo "Pokémon totales:    $TOTAL"
+echo "Datos completos:    $COMPLETE_COUNT"
+echo "Consultas fallidas: $FAILED"
+
+echo
+echo "Copia de seguridad:"
+echo "$BACKUP_FILE"
+
+echo
+printf '%sEjemplo de Charizard:%s\n' \
+    "$YELLOW" \
+    "$RESET"
+
+jq '
+    .charizard
+    | {
+        id,
+        name,
+        types,
+        abilities,
+        stats,
+        region,
+        generation,
+        height_m,
+        weight_kg,
+        image
+    }
+' "$CACHE_FILE" 2>/dev/null || true

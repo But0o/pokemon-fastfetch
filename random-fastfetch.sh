@@ -2,471 +2,965 @@
 
 set -Eeuo pipefail
 
-# ─────────────────────────────────────────────
-# Rutas portables
-# ─────────────────────────────────────────────
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Pokémon Fastfetch v2.0                                      │
+# │ Panel Pokémon superior + información del sistema inferior   │
+# ╰──────────────────────────────────────────────────────────────╯
 
 SCRIPT_DIR="$(
     cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
     pwd
 )"
 
-BUILD_SCRIPT="$SCRIPT_DIR/build-pokedex-cache.sh"
+CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
+POKEDEX_FILE="$CACHE_ROOT/pokedex.json"
 
-POKEMON_DIR="${POKEMON_DIR:-$HOME/.local/share/pokimg/images}"
+RENDER_SCRIPT="$SCRIPT_DIR/render-pokemon.sh"
 
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
-CACHE_FILE="$CACHE_DIR/pokedex.json"
-WORK_DIR="$CACHE_DIR/generated"
-FINAL_IMAGE="$WORK_DIR/pokemon-fastfetch.png"
+# ────────────────────────────────────────────────────────────────
+# Configuración visual
+# ────────────────────────────────────────────────────────────────
 
-mkdir -p "$WORK_DIR"
+# Cantidad de filas que ocupará el panel Pokémon en Kitty.
+POKEMON_PANEL_ROWS="${POKEMON_PANEL_ROWS:-22}"
 
-# ─────────────────────────────────────────────
-# Dependencias
-# ─────────────────────────────────────────────
+# Ancho máximo del contenido inferior.
+SYSTEM_PANEL_MAX_WIDTH="${SYSTEM_PANEL_MAX_WIDTH:-150}"
 
-DEPENDENCIES=(
+# Espacio entre las dos columnas inferiores.
+COLUMN_GAP=6
+
+# ────────────────────────────────────────────────────────────────
+# Colores ANSI
+# ────────────────────────────────────────────────────────────────
+
+RESET=$'\033[0m'
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+
+WHITE=$'\033[38;2;232;232;236m'
+GRAY=$'\033[38;2;158;158;170m'
+DARK_GRAY=$'\033[38;2;85;85;98m'
+
+RED=$'\033[38;2;255;84;84m'
+ORANGE=$'\033[38;2;255;145;44m'
+YELLOW=$'\033[38;2;244;225;55m'
+GREEN=$'\033[38;2;83;218;122m'
+CYAN=$'\033[38;2;83;207;230m'
+BLUE=$'\033[38;2;87;138;255m'
+PURPLE=$'\033[38;2;149;103;255m'
+MAGENTA=$'\033[38;2;224;84;214m'
+
+# ────────────────────────────────────────────────────────────────
+# Utilidades
+# ────────────────────────────────────────────────────────────────
+
+show_help() {
+    cat <<'EOF'
+Pokémon Fastfetch v2.0
+
+Uso:
+
+  random-fastfetch.sh
+      Selecciona un Pokémon aleatorio.
+
+  random-fastfetch.sh charizard
+      Muestra un Pokémon por nombre.
+
+  random-fastfetch.sh 6
+      Muestra un Pokémon por número de Pokédex.
+
+  random-fastfetch.sh --random
+      Selecciona un Pokémon aleatorio.
+
+  random-fastfetch.sh --rerender charizard
+      Borra el panel cacheado y vuelve a generarlo.
+
+  random-fastfetch.sh --help
+      Muestra esta ayuda.
+
+Ejemplos:
+
+  random-fastfetch.sh pikachu
+  random-fastfetch.sh charizard
+  random-fastfetch.sh rayquaza
+  random-fastfetch.sh 25
+  random-fastfetch.sh 384
+EOF
+}
+
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+trim_text() {
+    local value="${1:-}"
+    local maximum="${2:-40}"
+
+    value="${value//$'\n'/ }"
+    value="${value//$'\r'/ }"
+
+    while [[ "$value" == *"  "* ]]; do
+        value="${value//  / }"
+    done
+
+    if ((${#value} > maximum)); then
+        printf '%s…' "${value:0:$((maximum - 1))}"
+    else
+        printf '%s' "$value"
+    fi
+}
+
+safe_value() {
+    local value="${1:-}"
+    local fallback="${2:-No disponible}"
+
+    if [[ -z "$value" || "$value" == "null" ]]; then
+        printf '%s' "$fallback"
+    else
+        printf '%s' "$value"
+    fi
+}
+
+format_bytes() {
+    local bytes="${1:-0}"
+
+    if ! [[ "$bytes" =~ ^[0-9]+$ ]]; then
+        bytes=0
+    fi
+
+    awk \
+        -v bytes="$bytes" \
+        'BEGIN {
+            split("B KiB MiB GiB TiB", units, " ")
+            index = 1
+            value = bytes
+
+            while (value >= 1024 && index < 5) {
+                value /= 1024
+                index++
+            }
+
+            if (index <= 2) {
+                printf "%.0f %s", value, units[index]
+            } else {
+                printf "%.2f %s", value, units[index]
+            }
+        }'
+}
+
+get_terminal_columns() {
+    local columns
+
+    columns="$(
+        tput cols 2>/dev/null ||
+            printf '120'
+    )"
+
+    if ! [[ "$columns" =~ ^[0-9]+$ ]]; then
+        columns=120
+    fi
+
+    printf '%s' "$columns"
+}
+
+repeat_character() {
+    local character="$1"
+    local amount="$2"
+
+    if ((amount <= 0)); then
+        return
+    fi
+
+    printf '%*s' "$amount" '' |
+        tr ' ' "$character"
+}
+
+# ────────────────────────────────────────────────────────────────
+# Validaciones
+# ────────────────────────────────────────────────────────────────
+
+required_commands=(
     jq
-    shuf
-    magick
-    fc-match
-    fastfetch
+    kitten
+    tput
+    awk
+    sed
+    uname
+    hostname
+    df
 )
 
-for command_name in "${DEPENDENCIES[@]}"; do
-    if ! command -v "$command_name" >/dev/null 2>&1; then
-        printf 'Falta instalar: %s\n' "$command_name"
+for required_command in "${required_commands[@]}"; do
+    if ! command_exists "$required_command"; then
+        printf '%sFalta instalar o encontrar: %s%s\n' \
+            "$RED" \
+            "$required_command" \
+            "$RESET"
+
         exit 1
     fi
 done
 
-if [[ ! -d "$POKEMON_DIR" ]]; then
-    echo "No existe la carpeta de imágenes:"
-    echo "$POKEMON_DIR"
-    echo
-    echo "Podés especificar otra ubicación con:"
-    echo
-    echo 'POKEMON_DIR="/ruta/a/images" ./random-fastfetch.sh'
+if [[ ! -s "$POKEDEX_FILE" ]]; then
+    printf '%sNo existe la caché Pokédex:%s\n' "$RED" "$RESET"
+    echo "$POKEDEX_FILE"
     exit 1
 fi
 
-if [[ ! -s "$CACHE_FILE" ]]; then
-    echo "No existe la caché Pokédex o está vacía:"
-    echo "$CACHE_FILE"
-    echo
-    echo "Generala ejecutando:"
-    echo "$BUILD_SCRIPT"
+if ! jq empty "$POKEDEX_FILE" >/dev/null 2>&1; then
+    printf '%sLa caché Pokédex es inválida:%s\n' "$RED" "$RESET"
+    echo "$POKEDEX_FILE"
     exit 1
 fi
 
-if ! jq empty "$CACHE_FILE" >/dev/null 2>&1; then
-    echo "La caché JSON está dañada:"
-    echo "$CACHE_FILE"
+if [[ ! -x "$RENDER_SCRIPT" ]]; then
+    printf '%sNo existe o no tiene permisos el renderizador:%s\n' \
+        "$RED" \
+        "$RESET"
+
+    echo "$RENDER_SCRIPT"
     exit 1
 fi
 
-# ─────────────────────────────────────────────
-# Obtener JetBrains Mono Nerd Font
-# ─────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────
+# Procesar argumentos
+# ────────────────────────────────────────────────────────────────
 
-FONT_FILE="$(
-    fc-match \
-        -f '%{file}\n' \
-        'JetBrainsMono Nerd Font' \
-        2>/dev/null |
-        head -n 1
+REQUEST=""
+FORCE_RERENDER=false
+
+case "${1:-}" in
+    --help | -h)
+        show_help
+        exit 0
+        ;;
+
+    --rerender)
+        FORCE_RERENDER=true
+        REQUEST="${2:-}"
+
+        if [[ -z "$REQUEST" ]]; then
+            echo "Tenés que indicar un Pokémon."
+            echo
+            echo "Ejemplo:"
+            echo "  $0 --rerender charizard"
+            exit 1
+        fi
+        ;;
+
+    "" | --random | random)
+        REQUEST="$(
+            jq -r '
+                to_entries
+                | map(
+                    select(
+                        (
+                            .value.image
+                            // ""
+                        )
+                        | length > 0
+                    )
+                )
+                | .[].key
+            ' "$POKEDEX_FILE" |
+                shuf --head-count=1
+        )"
+        ;;
+
+    *)
+        REQUEST="$1"
+        ;;
+esac
+
+if [[ -z "$REQUEST" ]]; then
+    echo "No se pudo seleccionar un Pokémon."
+    exit 1
+fi
+
+# ────────────────────────────────────────────────────────────────
+# Forzar regeneración opcional
+# ────────────────────────────────────────────────────────────────
+
+if [[ "$FORCE_RERENDER" == "true" ]]; then
+    SAFE_REQUEST="$(
+        printf '%s' "$REQUEST" |
+            tr '[:upper:]' '[:lower:]' |
+            sed \
+                -e 's/[[:space:]_]/-/g' \
+                -e 's/[^a-z0-9.-]/-/g'
+    )"
+
+    rm -f \
+        "$CACHE_ROOT/panels-v2/${SAFE_REQUEST}.png" \
+        "$CACHE_ROOT/panels-v2/${SAFE_REQUEST}-"*.png \
+        2>/dev/null ||
+        true
+fi
+
+# ────────────────────────────────────────────────────────────────
+# Obtener panel Pokémon
+# ────────────────────────────────────────────────────────────────
+
+PANEL_IMAGE="$(
+    "$RENDER_SCRIPT" "$REQUEST"
 )"
 
-if [[ -z "$FONT_FILE" || ! -f "$FONT_FILE" ]]; then
-    FONT_FILE="$(
-        fc-match \
-            -f '%{file}\n' \
-            'JetBrains Mono Nerd Font' \
-            2>/dev/null |
-            head -n 1
-    )"
-fi
-
-if [[ -z "$FONT_FILE" || ! -f "$FONT_FILE" ]]; then
-    FONT_FILE="$(
-        fc-match \
-            -f '%{file}\n' \
-            'JetBrainsMonoNL Nerd Font' \
-            2>/dev/null |
-            head -n 1
-    )"
-fi
-
-if [[ -z "$FONT_FILE" || ! -f "$FONT_FILE" ]]; then
-    FONT_FILE="$(
-        fc-match \
-            -f '%{file}\n' \
-            'JetBrains Mono' \
-            2>/dev/null |
-            head -n 1
-    )"
-fi
-
-if [[ -z "$FONT_FILE" || ! -f "$FONT_FILE" ]]; then
-    echo "No se encontró JetBrains Mono Nerd Font."
+if [[ -z "$PANEL_IMAGE" || ! -s "$PANEL_IMAGE" ]]; then
+    echo "No se pudo obtener el panel Pokémon."
     exit 1
 fi
 
-# ─────────────────────────────────────────────
-# Elegir Pokémon aleatorio directamente del JSON
-#
-# No recorre la carpeta completa.
-# No consulta Internet.
-# ─────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────
+# Recopilar información del sistema
+# ────────────────────────────────────────────────────────────────
 
-if ! POKEMON_DATA="$(
-    jq -c '
-        .[]
-        | select(
-            (.image? | type == "string")
-            and (.image | length > 0)
-        )
-    ' "$CACHE_FILE" 2>/dev/null |
-        shuf --head-count=1
-)"; then
-    echo "No se pudo leer la caché JSON:"
-    echo "$CACHE_FILE"
-    exit 1
-fi
+get_os() {
+    local os_name=""
+    local architecture=""
 
-if [[ -z "$POKEMON_DATA" || "$POKEMON_DATA" == "null" ]]; then
-    echo "No se encontraron Pokémon válidos en el JSON."
-    exit 1
-fi
+    if [[ -r /etc/os-release ]]; then
+        os_name="$(
+            (
+                source /etc/os-release
+                printf '%s' "${PRETTY_NAME:-${NAME:-Linux}}"
+            )
+        )"
+    fi
 
-# ─────────────────────────────────────────────
-# Leer todos los campos con una llamada a jq
-# ─────────────────────────────────────────────
+    architecture="$(uname -m 2>/dev/null || true)"
 
-IFS=$'\t' read -r \
-    IMAGE_FILENAME \
-    NUMBER \
-    DISPLAY_NAME \
-    PRIMARY_TYPE \
-    TYPE \
-    REGION \
-    GENERATION \
-    IS_LEGENDARY \
-    IS_MYTHICAL < <(
-        jq -r '
-            def title_words:
-                gsub("-"; " ")
-                | split(" ")
-                | map(
-                    if length > 0 then
-                        (.[0:1] | ascii_upcase) + .[1:]
+    os_name="$(safe_value "$os_name" "Linux")"
+    architecture="$(safe_value "$architecture" "Desconocida")"
+
+    printf '%s %s' "$os_name" "$architecture"
+}
+
+get_kernel() {
+    uname -r 2>/dev/null || printf 'No disponible'
+}
+
+get_uptime() {
+    local uptime_value=""
+
+    if command_exists uptime; then
+        uptime_value="$(
+            uptime -p 2>/dev/null |
+                sed \
+                    -e 's/^up //' \
+                    -e 's/ days\?/d/g' \
+                    -e 's/ hours\?/h/g' \
+                    -e 's/ minutes\?/m/g' \
+                    -e 's/,//g' ||
+                true
+        )"
+    fi
+
+    if [[ -z "$uptime_value" && -r /proc/uptime ]]; then
+        uptime_value="$(
+            awk '
+                {
+                    seconds = int($1)
+                    days = int(seconds / 86400)
+                    hours = int((seconds % 86400) / 3600)
+                    minutes = int((seconds % 3600) / 60)
+
+                    if (days > 0) {
+                        printf "%dd ", days
+                    }
+
+                    if (hours > 0 || days > 0) {
+                        printf "%dh ", hours
+                    }
+
+                    printf "%dm", minutes
+                }
+            ' /proc/uptime
+        )"
+    fi
+
+    safe_value "$uptime_value"
+}
+
+get_packages() {
+    local packages=""
+
+    if command_exists pacman; then
+        packages="$(
+            pacman -Qq 2>/dev/null |
+                wc -l |
+                tr -d ' '
+        )"
+
+        printf '%s (pacman)' "$packages"
+        return
+    fi
+
+    if command_exists flatpak; then
+        packages="$(
+            flatpak list --app 2>/dev/null |
+                wc -l |
+                tr -d ' '
+        )"
+
+        printf '%s (flatpak)' "$packages"
+        return
+    fi
+
+    printf 'No disponible'
+}
+
+get_shell() {
+    local shell_name=""
+    local shell_version=""
+
+    shell_name="$(basename "${SHELL:-fish}")"
+
+    case "$shell_name" in
+        fish)
+            shell_version="$(
+                fish --version 2>/dev/null |
+                    awk '{print $3}' ||
+                    true
+            )"
+            ;;
+
+        bash)
+            shell_version="${BASH_VERSION:-}"
+            ;;
+
+        zsh)
+            shell_version="$(
+                zsh --version 2>/dev/null |
+                    awk '{print $2}' ||
+                    true
+            )"
+            ;;
+
+        *)
+            shell_version=""
+            ;;
+    esac
+
+    if [[ -n "$shell_version" ]]; then
+        printf '%s %s' "$shell_name" "$shell_version"
+    else
+        printf '%s' "$shell_name"
+    fi
+}
+
+get_display() {
+    local display=""
+
+    if command_exists hyprctl; then
+        display="$(
+            hyprctl monitors -j 2>/dev/null |
+                jq -r '
+                    [
+                        .[]
+                        | select(
+                            .focused == true
+                        )
+                    ][0]
+                    //
+                    .[0]
+                    |
+                    if . == null then
+                        empty
                     else
-                        .
+                        "\(.width)x\(.height) @ \(
+                            (
+                                .refreshRate
+                                // 0
+                            )
+                            | floor
+                        ) Hz"
                     end
-                )
-                | join(" ");
+                ' 2>/dev/null ||
+                true
+        )"
+    fi
 
-            [
-                (.image // ""),
-                (.number // "000"),
-                (.name // "Desconocido"),
-                (.types[0] // "normal"),
-                (
-                    (.types // ["normal"])
-                    | map(title_words)
-                    | join(" / ")
-                ),
-                (.region // "Desconocida"),
-                (.generation // 0),
-                (.legendary // false),
-                (.mythical // false)
-            ]
-            | @tsv
-        ' <<< "$POKEMON_DATA"
-    )
+    if [[ -z "$display" ]] && command_exists xrandr; then
+        display="$(
+            xrandr --current 2>/dev/null |
+                awk '
+                    / connected primary / {
+                        for (i = 1; i <= NF; i++) {
+                            if ($i ~ /^[0-9]+x[0-9]+\+/) {
+                                split($i, resolution, "+")
+                                print resolution[1]
+                                exit
+                            }
+                        }
+                    }
 
-SELECTED_IMAGE="$POKEMON_DIR/$IMAGE_FILENAME"
+                    / connected / && result == "" {
+                        for (i = 1; i <= NF; i++) {
+                            if ($i ~ /^[0-9]+x[0-9]+\+/) {
+                                split($i, resolution, "+")
+                                result = resolution[1]
+                            }
+                        }
+                    }
 
-if [[ ! -f "$SELECTED_IMAGE" ]]; then
-    echo "No existe la imagen seleccionada:"
-    echo "$SELECTED_IMAGE"
-    echo
-    echo "Carpeta configurada:"
-    echo "$POKEMON_DIR"
-    echo
-    echo "Regenerá la caché ejecutando:"
-    echo "$BUILD_SCRIPT"
-    exit 1
-fi
+                    END {
+                        if (result != "") {
+                            print result
+                        }
+                    }
+                ' |
+                head -n 1 ||
+                true
+        )"
+    fi
 
-# ─────────────────────────────────────────────
-# Categoría
-# ─────────────────────────────────────────────
+    safe_value "$display"
+}
 
-if [[ "$IS_MYTHICAL" == "true" ]]; then
-    CATEGORY="Mítico"
-elif [[ "$IS_LEGENDARY" == "true" ]]; then
-    CATEGORY="Legendario"
+get_window_manager() {
+    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+        local version=""
+
+        version="$(
+            hyprctl version -j 2>/dev/null |
+                jq -r '
+                    .tag
+                    // .version
+                    // empty
+                ' 2>/dev/null ||
+                true
+        )"
+
+        if [[ -n "$version" ]]; then
+            printf 'Hyprland %s (Wayland)' "$version"
+        else
+            printf 'Hyprland (Wayland)'
+        fi
+
+        return
+    fi
+
+    safe_value "${XDG_CURRENT_DESKTOP:-${DESKTOP_SESSION:-}}"
+}
+
+get_terminal() {
+    local version=""
+
+    if [[ "${TERM:-}" == "xterm-kitty" ]] && command_exists kitty; then
+        version="$(
+            kitty --version 2>/dev/null |
+                awk '{print $2}' ||
+                true
+        )"
+
+        if [[ -n "$version" ]]; then
+            printf 'kitty %s' "$version"
+        else
+            printf 'kitty'
+        fi
+
+        return
+    fi
+
+    safe_value "${TERM_PROGRAM:-${TERM:-}}"
+}
+
+get_font() {
+    local font_name=""
+
+    font_name="$(
+        fc-match \
+            -f '%{family[0]} (%{size}pt)' \
+            monospace \
+            2>/dev/null ||
+            true
+    )"
+
+    safe_value "$font_name"
+}
+
+get_cpu() {
+    local cpu=""
+
+    if command_exists lscpu; then
+        cpu="$(
+            lscpu 2>/dev/null |
+                awk -F: '
+                    /^Model name:/ {
+                        value = $2
+                        sub(/^[ \t]+/, "", value)
+                        print value
+                        exit
+                    }
+                ' ||
+                true
+        )"
+    fi
+
+    if [[ -z "$cpu" && -r /proc/cpuinfo ]]; then
+        cpu="$(
+            awk -F: '
+                /^model name/ {
+                    value = $2
+                    sub(/^[ \t]+/, "", value)
+                    print value
+                    exit
+                }
+            ' /proc/cpuinfo
+        )"
+    fi
+
+    safe_value "$cpu"
+}
+
+get_gpu() {
+    local gpu=""
+
+    if command_exists lspci; then
+        gpu="$(
+            lspci 2>/dev/null |
+                awk -F': ' '
+                    /VGA compatible controller|3D controller|Display controller/ {
+                        value = $2
+                        sub(/ \(rev [^)]+\)$/, "", value)
+                        print value
+                        exit
+                    }
+                ' ||
+                true
+        )"
+    fi
+
+    safe_value "$gpu"
+}
+
+get_memory() {
+    if [[ ! -r /proc/meminfo ]]; then
+        printf 'No disponible'
+        return
+    fi
+
+    awk '
+        /^MemTotal:/ {
+            total = $2 * 1024
+        }
+
+        /^MemAvailable:/ {
+            available = $2 * 1024
+        }
+
+        END {
+            used = total - available
+            percent = total > 0 ? int((used / total) * 100) : 0
+
+            printf "%.2f GiB / %.2f GiB (%d%%)",
+                used / 1073741824,
+                total / 1073741824,
+                percent
+        }
+    ' /proc/meminfo
+}
+
+get_disk() {
+    local disk_line=""
+    local total=""
+    local used=""
+    local percent=""
+    local filesystem=""
+
+    disk_line="$(
+        df \
+            --block-size=1 \
+            --output=size,used,pcent,fstype \
+            / \
+            2>/dev/null |
+            tail -n 1 |
+            awk '{$1=$1; print}' ||
+            true
+    )"
+
+    if [[ -z "$disk_line" ]]; then
+        printf 'No disponible'
+        return
+    fi
+
+    read -r total used percent filesystem <<< "$disk_line"
+
+    printf '%s / %s (%s) - %s' \
+        "$(format_bytes "$used")" \
+        "$(format_bytes "$total")" \
+        "$percent" \
+        "$filesystem"
+}
+
+get_network() {
+    local interface=""
+    local address=""
+
+    if command_exists ip; then
+        interface="$(
+            ip route show default 2>/dev/null |
+                awk '
+                    {
+                        for (i = 1; i <= NF; i++) {
+                            if ($i == "dev") {
+                                print $(i + 1)
+                                exit
+                            }
+                        }
+                    }
+                ' ||
+                true
+        )"
+
+        if [[ -n "$interface" ]]; then
+            address="$(
+                ip \
+                    -o \
+                    -4 \
+                    address \
+                    show \
+                    dev "$interface" \
+                    2>/dev/null |
+                    awk '{print $4; exit}' ||
+                    true
+            )"
+        fi
+    fi
+
+    if [[ -n "$interface" && -n "$address" ]]; then
+        printf '%s %s' "$interface" "$address"
+    elif [[ -n "$interface" ]]; then
+        printf '%s' "$interface"
+    else
+        printf 'No disponible'
+    fi
+}
+
+get_install_age() {
+    local timestamp=""
+    local current=""
+    local days=""
+
+    if [[ -e / ]]; then
+        timestamp="$(
+            stat \
+                --format='%W' \
+                / \
+                2>/dev/null ||
+                printf '0'
+        )"
+    fi
+
+    if [[ "$timestamp" =~ ^[0-9]+$ ]] && ((timestamp > 0)); then
+        current="$(date +%s)"
+        days="$(((current - timestamp) / 86400))"
+
+        printf '%s días' "$days"
+        return
+    fi
+
+    if command_exists tune2fs; then
+        printf 'No disponible'
+        return
+    fi
+
+    printf 'No disponible'
+}
+
+get_machine() {
+    local product=""
+    local vendor=""
+
+    if [[ -r /sys/devices/virtual/dmi/id/product_name ]]; then
+        product="$(
+            tr -d '\n' < /sys/devices/virtual/dmi/id/product_name
+        )"
+    fi
+
+    if [[ -r /sys/devices/virtual/dmi/id/sys_vendor ]]; then
+        vendor="$(
+            tr -d '\n' < /sys/devices/virtual/dmi/id/sys_vendor
+        )"
+    fi
+
+    if [[ -n "$vendor" && -n "$product" ]]; then
+        printf '%s %s' "$vendor" "$product"
+    elif [[ -n "$product" ]]; then
+        printf '%s' "$product"
+    else
+        hostname 2>/dev/null || printf 'No disponible'
+    fi
+}
+
+# ────────────────────────────────────────────────────────────────
+# Recopilar valores
+# ────────────────────────────────────────────────────────────────
+
+OS_VALUE="$(get_os)"
+KERNEL_VALUE="$(get_kernel)"
+UPTIME_VALUE="$(get_uptime)"
+PACKAGES_VALUE="$(get_packages)"
+SHELL_VALUE="$(get_shell)"
+DISPLAY_VALUE="$(get_display)"
+WM_VALUE="$(get_window_manager)"
+TERMINAL_VALUE="$(get_terminal)"
+FONT_VALUE="$(get_font)"
+
+CPU_VALUE="$(get_cpu)"
+GPU_VALUE="$(get_gpu)"
+MEMORY_VALUE="$(get_memory)"
+DISK_VALUE="$(get_disk)"
+NETWORK_VALUE="$(get_network)"
+OS_AGE_VALUE="$(get_install_age)"
+MACHINE_VALUE="$(get_machine)"
+
+# ────────────────────────────────────────────────────────────────
+# Ajustar tamaños según terminal
+# ────────────────────────────────────────────────────────────────
+
+TERMINAL_COLUMNS="$(get_terminal_columns)"
+
+if ((TERMINAL_COLUMNS > SYSTEM_PANEL_MAX_WIDTH)); then
+    CONTENT_WIDTH="$SYSTEM_PANEL_MAX_WIDTH"
 else
-    CATEGORY="Normal"
+    CONTENT_WIDTH="$TERMINAL_COLUMNS"
 fi
 
-# ─────────────────────────────────────────────
-# Generación en números romanos
-# ─────────────────────────────────────────────
+if ((CONTENT_WIDTH < 90)); then
+    CONTENT_WIDTH=90
+fi
 
-case "$GENERATION" in
-    1)
-        GENERATION_DISPLAY="I"
-        ;;
+LEFT_COLUMN_WIDTH="$(((CONTENT_WIDTH - COLUMN_GAP - 1) / 2))"
+RIGHT_COLUMN_WIDTH="$((CONTENT_WIDTH - LEFT_COLUMN_WIDTH - COLUMN_GAP - 1))"
 
-    2)
-        GENERATION_DISPLAY="II"
-        ;;
+LEFT_LABEL_WIDTH=13
+RIGHT_LABEL_WIDTH=13
 
-    3)
-        GENERATION_DISPLAY="III"
-        ;;
+LEFT_VALUE_WIDTH="$((LEFT_COLUMN_WIDTH - LEFT_LABEL_WIDTH - 2))"
+RIGHT_VALUE_WIDTH="$((RIGHT_COLUMN_WIDTH - RIGHT_LABEL_WIDTH - 2))"
 
-    4)
-        GENERATION_DISPLAY="IV"
-        ;;
+# ────────────────────────────────────────────────────────────────
+# Mostrar panel Pokémon
+# ────────────────────────────────────────────────────────────────
 
-    5)
-        GENERATION_DISPLAY="V"
-        ;;
+clear
 
-    6)
-        GENERATION_DISPLAY="VI"
-        ;;
+# El protocolo gráfico de Kitty coloca la imagen en una zona fija.
+# Después posicionamos el cursor debajo del panel.
+kitten icat \
+    --transfer-mode file \
+    --align left \
+    --scale-up \
+    --place "${CONTENT_WIDTH}x${POKEMON_PANEL_ROWS}@0x0" \
+    "$PANEL_IMAGE"
 
-    7)
-        GENERATION_DISPLAY="VII"
-        ;;
+tput cup "$POKEMON_PANEL_ROWS" 0
 
-    8)
-        GENERATION_DISPLAY="VIII"
-        ;;
+# ────────────────────────────────────────────────────────────────
+# Renderizar información inferior
+# ────────────────────────────────────────────────────────────────
 
-    9)
-        GENERATION_DISPLAY="IX"
-        ;;
+print_divider() {
+    printf '%s' "$DARK_GRAY"
+    repeat_character '─' "$CONTENT_WIDTH"
+    printf '%s\n' "$RESET"
+}
 
-    *)
-        GENERATION_DISPLAY="?"
-        ;;
-esac
+print_two_columns() {
+    local left_color="$1"
+    local left_icon="$2"
+    local left_label="$3"
+    local left_value="$4"
 
-# ─────────────────────────────────────────────
-# Limitar textos largos
-# ─────────────────────────────────────────────
+    local right_color="$5"
+    local right_icon="$6"
+    local right_label="$7"
+    local right_value="$8"
 
-DISPLAY_NAME="${DISPLAY_NAME:0:18}"
-TYPE="${TYPE:0:20}"
-REGION="${REGION:0:16}"
-CATEGORY="${CATEGORY:0:16}"
+    left_value="$(trim_text "$left_value" "$LEFT_VALUE_WIDTH")"
+    right_value="$(trim_text "$right_value" "$RIGHT_VALUE_WIDTH")"
 
-# ─────────────────────────────────────────────
-# Color según tipo principal
-# ─────────────────────────────────────────────
+    printf '%s%s %-10s%s ' \
+        "$left_color" \
+        "$left_icon" \
+        "$left_label" \
+        "$RESET"
 
-case "$PRIMARY_TYPE" in
-    normal)
-        TYPE_COLOR="#a8a77a"
-        ;;
+    printf '%-*s' \
+        "$LEFT_VALUE_WIDTH" \
+        "$left_value"
 
-    fire)
-        TYPE_COLOR="#ee8130"
-        ;;
+    printf '%s│%s' "$DARK_GRAY" "$RESET"
 
-    water)
-        TYPE_COLOR="#6390f0"
-        ;;
+    printf '%*s' "$COLUMN_GAP" ''
 
-    electric)
-        TYPE_COLOR="#f7d02c"
-        ;;
+    printf '%s%s %-10s%s ' \
+        "$right_color" \
+        "$right_icon" \
+        "$right_label" \
+        "$RESET"
 
-    grass)
-        TYPE_COLOR="#7ac74c"
-        ;;
+    printf '%s\n' "$right_value"
+}
 
-    ice)
-        TYPE_COLOR="#96d9d6"
-        ;;
+print_divider
 
-    fighting)
-        TYPE_COLOR="#c22e28"
-        ;;
+print_two_columns \
+    "$RED" "󰣇" "OS" "$OS_VALUE" \
+    "$PURPLE" "" "CPU" "$CPU_VALUE"
 
-    poison)
-        TYPE_COLOR="#a33ea1"
-        ;;
+print_two_columns \
+    "$RED" "󰘳" "Kernel" "$KERNEL_VALUE" \
+    "$PURPLE" "󰢮" "GPU" "$GPU_VALUE"
 
-    ground)
-        TYPE_COLOR="#e2bf65"
-        ;;
+print_two_columns \
+    "$RED" "󰔟" "Uptime" "$UPTIME_VALUE" \
+    "$PURPLE" "󰍛" "Memory" "$MEMORY_VALUE"
 
-    flying)
-        TYPE_COLOR="#a98ff3"
-        ;;
+print_two_columns \
+    "$GREEN" "󰏖" "Packages" "$PACKAGES_VALUE" \
+    "$MAGENTA" "󰋊" "Disk" "$DISK_VALUE"
 
-    psychic)
-        TYPE_COLOR="#f95587"
-        ;;
+print_two_columns \
+    "$PURPLE" "󰆍" "Shell" "$SHELL_VALUE" \
+    "$MAGENTA" "󰛳" "Network" "$NETWORK_VALUE"
 
-    bug)
-        TYPE_COLOR="#a6b91a"
-        ;;
+print_two_columns \
+    "$GREEN" "󰍹" "Display" "$DISPLAY_VALUE" \
+    "$ORANGE" "󰔚" "OS Age" "$OS_AGE_VALUE"
 
-    rock)
-        TYPE_COLOR="#b6a136"
-        ;;
+print_two_columns \
+    "$YELLOW" "" "WM" "$WM_VALUE" \
+    "$RED" "󰌢" "Machine" "$MACHINE_VALUE"
 
-    ghost)
-        TYPE_COLOR="#735797"
-        ;;
+print_two_columns \
+    "$YELLOW" "" "Terminal" "$TERMINAL_VALUE" \
+    "$CYAN" "" "Font" "$FONT_VALUE"
 
-    dragon)
-        TYPE_COLOR="#6f35fc"
-        ;;
+# ────────────────────────────────────────────────────────────────
+# Paleta inferior
+# ────────────────────────────────────────────────────────────────
 
-    dark)
-        TYPE_COLOR="#705746"
-        ;;
+printf '\n'
 
-    steel)
-        TYPE_COLOR="#b7b7ce"
-        ;;
+PALETTE="●  ●  ●  ●  ●  ●  ●  ●"
 
-    fairy)
-        TYPE_COLOR="#d685ad"
-        ;;
+PALETTE_LENGTH=22
+PALETTE_PADDING="$(((CONTENT_WIDTH - PALETTE_LENGTH) / 2))"
 
-    *)
-        TYPE_COLOR="#a7afb2"
-        ;;
-esac
+if ((PALETTE_PADDING < 0)); then
+    PALETTE_PADDING=0
+fi
 
-# ─────────────────────────────────────────────
-# Color de categoría
-# ─────────────────────────────────────────────
+printf '%*s' "$PALETTE_PADDING" ''
 
-case "$CATEGORY" in
-    "Mítico")
-        CATEGORY_COLOR="#f7d02c"
-        ;;
-
-    "Legendario")
-        CATEGORY_COLOR="#ff6b6b"
-        ;;
-
-    *)
-        CATEGORY_COLOR="#d8dddf"
-        ;;
-esac
-
-# ─────────────────────────────────────────────
-# Generar sprite y ficha en una sola ejecución
-# ─────────────────────────────────────────────
-
-magick \
-    \( \
-        "$SELECTED_IMAGE" \
-        -background none \
-        -alpha on \
-        -filter point \
-        -resize '420x300>' \
-        -gravity center \
-        -extent 640x310 \
-    \) \
-    \( \
-        -size 640x445 \
-        xc:none \
-        -font "$FONT_FILE" \
-        -stroke none \
-        -gravity northwest \
-        \
-        -fill "#a7afb2" \
-        -pointsize 29 \
-        -annotate "+26+0" \
-        "+----------------------------------+" \
-        \
-        -fill "$TYPE_COLOR" \
-        -pointsize 38 \
-        -annotate "+185+13" \
-        "[ POKÉDEX ]" \
-        \
-        -fill "$TYPE_COLOR" \
-        -pointsize 29 \
-        -annotate "+26+62" \
-        "+----------------------------------+" \
-        \
-        -fill "#a7afb2" \
-        -annotate "+26+89" \
-        "| > CATEG.  :" \
-        -annotate "+26+145" \
-        "| > Nº      :" \
-        -annotate "+26+201" \
-        "| > NOMBRE  :" \
-        -annotate "+26+257" \
-        "| > TIPO    :" \
-        -annotate "+26+313" \
-        "| > REGIÓN  :" \
-        -annotate "+26+369" \
-        "| > GEN.    :" \
-        \
-        -fill "$CATEGORY_COLOR" \
-        -annotate "+292+89" \
-        "$CATEGORY" \
-        \
-        -fill "#d8dddf" \
-        -annotate "+292+145" \
-        "#$NUMBER" \
-        -annotate "+292+201" \
-        "$DISPLAY_NAME" \
-        \
-        -fill "$TYPE_COLOR" \
-        -annotate "+292+257" \
-        "$TYPE" \
-        \
-        -fill "#d8dddf" \
-        -annotate "+292+313" \
-        "$REGION" \
-        -annotate "+292+369" \
-        "$GENERATION_DISPLAY" \
-        \
-        -fill "#a7afb2" \
-        -annotate "+595+89" \
-        "|" \
-        -annotate "+595+145" \
-        "|" \
-        -annotate "+595+201" \
-        "|" \
-        -annotate "+595+257" \
-        "|" \
-        -annotate "+595+313" \
-        "|" \
-        -annotate "+595+369" \
-        "|" \
-        -annotate "+26+414" \
-        "+----------------------------------+" \
-    \) \
-    -background none \
-    -gravity center \
-    -append \
-    "$FINAL_IMAGE"
-
-# ─────────────────────────────────────────────
-# Ejecutar Fastfetch
-# ─────────────────────────────────────────────
-
-exec /usr/bin/fastfetch \
-    --logo "$FINAL_IMAGE" \
-    --logo-type kitty-direct \
-    --logo-width 27 \
-    --logo-height 29 \
-    --logo-padding-left 2 \
-    --logo-padding-right 3 \
-    --logo-padding-top 0
+printf '%s●%s  ' "$WHITE" "$RESET"
+printf '%s●%s  ' "$GRAY" "$RESET"
+printf '%s●%s  ' "$BLUE" "$RESET"
+printf '%s●%s  ' "$PURPLE" "$RESET"
+printf '%s●%s  ' "$MAGENTA" "$RESET"
+printf '%s●%s  ' "$GREEN" "$RESET"
+printf '%s●%s  ' "$YELLOW" "$RESET"
+printf '%s●%s\n' "$RED" "$RESET"

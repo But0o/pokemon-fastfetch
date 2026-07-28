@@ -1,0 +1,22 @@
+# Caché local
+pokedex.json
+metadata-all.tsv
+*.tmp.json
+
+# Imágenes generadas
+generated/
+pokemon-fastfetch.png
+pokemon-sprite.png
+pokedex-card.png
+
+# Archivos temporales
+*.tmp
+*.log
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db

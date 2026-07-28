@@ -1,163 +1,153 @@
-# Pokémon Fastfetch
+# ⚡ Pokémon Fastfetch
 
-Pokédex aleatoria para Fastfetch con sprites de Pokémon, colores por tipo y caché local en formato JSON.
+Display a random Pokémon every time you open your terminal.
 
-Cada vez que se ejecuta el script, selecciona un Pokémon aleatorio y lo muestra junto a la información del sistema.
+Pokémon Fastfetch combines **Fastfetch**, **Kitty graphics**, and a **locally cached Pokédex** to create a fast and visually appealing terminal startup.
 
-## Características
+![Preview](docs/preview.png)
 
-- Pokémon aleatorio.
-- Pokédex visual en estilo ASCII.
-- Colores según el tipo principal.
-- Número de Pokédex.
-- Nombre.
-- Tipo.
-- Región.
-- Generación.
-- Categoría Normal, Legendario o Mítico.
-- Caché local JSON.
-- Sin consultas a Internet después de crear la caché.
-- Compatible con Kitty y Fastfetch.
+---
 
-## Requisitos
+# ✨ Features
+
+- 🎲 Random Pokémon on every terminal launch
+- ⚡ Extremely fast startup
+- 💾 Offline Pokédex cache
+- 🖼️ Kitty image support
+- 🐟 Fish shell integration
+- 🔄 Upgrade script
+- 🗑️ Uninstaller
+- 🛠️ Automatic installer
+
+---
+
+# 📦 Requirements
 
 - Linux
-- Bash
-- Kitty
+- Kitty Terminal
+- Fish (recommended)
 - Fastfetch
-- ImageMagick
 - jq
-- curl
-- Git
-- JetBrains Mono Nerd Font
-- Imágenes de pokimg
+- ImageMagick
+- pokimg
 
-En Arch Linux, CachyOS y derivados:
+Arch/CachyOS:
 
 ```bash
-sudo pacman -S git fastfetch imagemagick jq curl findutils gawk
+sudo pacman -S fastfetch kitty jq imagemagick fish
 ```
 
-## Instalación de JetBrains Mono Nerd Font
+---
 
-En Arch Linux y derivados:
+# 🚀 Installation
 
-```bash
-sudo pacman -S ttf-jetbrains-mono-nerd
-```
-
-## Instalar pokimg
-
-Este proyecto utiliza las imágenes de:
-
-```text
-git clone https://github.com/FuzzyGrim/pokimg
-```
-
-Las imágenes deben quedar en:
-
-```text
-~/pokimg/images
-```
-
-## Instalar Pokémon Fastfetch
-
-Cloná el repositorio:
+Clone the repository:
 
 ```bash
 git clone https://github.com/But0o/pokemon-fastfetch.git
 cd pokemon-fastfetch
 ```
 
-Dale permisos a los scripts:
+Give execution permissions:
 
 ```bash
-chmod +x build-pokedex-cache.sh random-fastfetch.sh
+chmod +x install.sh
 ```
 
-Generá la caché:
+Run the installer:
 
 ```bash
-./build-pokedex-cache.sh
+./install.sh
 ```
 
-La caché se guarda en:
+The installer automatically:
+
+- Detects pokimg
+- Creates the required directories
+- Configures Fish
+- Installs Pokémon Fastfetch
+- Preserves future upgrades
+
+---
+
+# 🔄 Upgrade
+
+```bash
+chmod +x upgrade-v1-to-v2.sh
+./upgrade-v1-to-v2.sh
+```
+
+---
+
+# 🗑️ Uninstall
+
+```bash
+chmod +x uninstall.sh
+./uninstall.sh
+```
+
+Remove cache and backups:
+
+```bash
+./uninstall.sh --remove-cache --remove-backups
+```
+
+---
+
+# 📁 Project structure
 
 ```text
-~/.cache/pokemon-fastfetch/pokedex.json
+pokemon-fastfetch/
+├── build-pokedex-cache.sh
+├── random-fastfetch.sh
+├── render-pokemon.sh
+├── install.sh
+├── upgrade-v1-to-v2.sh
+├── uninstall.sh
+├── README.md
+├── LICENSE
+├── CHANGELOG.md
+├── VERSION
+├── docs/
+├── config/
+└── fish/
 ```
 
-Probá el resultado:
+---
 
-```bash
-./random-fastfetch.sh
-```
+# ⚙️ Configuration
 
-## Utilizar otra carpeta de imágenes
-
-Podés indicar otra ubicación:
-
-```bash
-POKEMON_DIR="/ruta/a/images" ./build-pokedex-cache.sh
-```
-
-Y después:
-
-```bash
-POKEMON_DIR="/ruta/a/images" ./random-fastfetch.sh
-```
-
-## Ejecutarlo automáticamente en Fish
-
-Abrí:
-
-```bash
-nano ~/.config/fish/config.fish
-```
-
-Agregá:
-
-```fish
-if status is-interactive
-    ~/pokemon-fastfetch/random-fastfetch.sh
-end
-```
-
-Para reemplazar el comando normal `fastfetch`:
-
-```fish
-function fastfetch
-    ~/pokemon-fastfetch/random-fastfetch.sh
-end
-```
-
-El script utiliza internamente:
+Configuration is stored in:
 
 ```text
-/usr/bin/fastfetch
+~/.config/pokemon-fastfetch/config
 ```
 
-por lo que la función no genera una llamada recursiva.
+Cache:
 
-## Actualizar la caché
-
-Volvé a ejecutar:
-
-```bash
-./build-pokedex-cache.sh
+```text
+~/.cache/pokemon-fastfetch
 ```
 
-Los Pokémon ya guardados se omiten automáticamente.
+Installation:
 
-Para regenerarla completamente:
-
-```bash
-rm -f ~/.cache/pokemon-fastfetch/pokedex.json
-./build-pokedex-cache.sh
+```text
+~/.local/share/pokemon-fastfetch
 ```
 
-# Licencia
+---
 
-Este proyecto utiliza la licencia MIT.
+# 🧪 Tested on
 
-Pokémon y sus marcas relacionadas pertenecen a sus respectivos propietarios. Este proyecto no está afiliado con Nintendo, Game Freak, Creatures Inc. ni The Pokémon Company.
+- ✅ CachyOS
+- ✅ Arch Linux
+- ✅ Fish Shell
+- ✅ Kitty Terminal
+
+---
+
+# 📄 License
+
+This project is distributed under the MIT License.
+
+See the **LICENSE** file for details.

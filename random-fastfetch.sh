@@ -15,6 +15,11 @@ SCRIPT_DIR="$(
 CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
 POKEDEX_FILE="$CACHE_ROOT/pokedex.json"
 
+CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/pokemon-fastfetch"
+FIXED_POKEMON_FILE="$CONFIG_ROOT/fixed-pokemon"
+
+mkdir -p "$CONFIG_ROOT"
+
 RENDER_SCRIPT="$SCRIPT_DIR/render-pokemon.sh"
 
 # ────────────────────────────────────────────────────────────────
@@ -231,8 +236,43 @@ REQUEST=""
 FORCE_RERENDER=false
 
 case "${1:-}" in
-    --help | -h)
+    --help|-h)
         show_help
+        exit 0
+        ;;
+
+    --set)
+        FIXED_REQUEST="${2:-}"
+
+        if [[ -z "$FIXED_REQUEST" ]]; then
+            echo "Tenés que indicar un Pokémon por nombre o número."
+            echo
+            echo "Ejemplos:"
+            echo "  pokemon-set pikachu"
+            echo "  pokemon-set 25"
+            exit 1
+        fi
+
+        # Comprobar que el Pokémon existe.
+        TEST_PANEL="$("$RENDER_SCRIPT" "$FIXED_REQUEST" 2>/dev/null || true)"
+
+        if [[ -z "$TEST_PANEL" || ! -s "$TEST_PANEL" ]]; then
+            echo "No se encontró el Pokémon: $FIXED_REQUEST"
+            exit 1
+        fi
+
+        printf '%s\n' "$FIXED_REQUEST" > "$FIXED_POKEMON_FILE"
+
+        echo "Pokémon fijo configurado: $FIXED_REQUEST"
+        echo "Se mostrará al abrir nuevas terminales."
+        exit 0
+        ;;
+
+    --random-mode)
+        rm -f "$FIXED_POKEMON_FILE"
+
+        echo "Modo aleatorio activado."
+        echo "Se seleccionará un Pokémon diferente en cada terminal."
         exit 0
         ;;
 
@@ -249,7 +289,8 @@ case "${1:-}" in
         fi
         ;;
 
-    "" | --random | random)
+    --random|random)
+        # Selección aleatoria solo para esta ejecución.
         REQUEST="$(
             jq -r '
                 to_entries
@@ -268,7 +309,33 @@ case "${1:-}" in
         )"
         ;;
 
+    "")
+        if [[ -s "$FIXED_POKEMON_FILE" ]]; then
+            REQUEST="$(head -n 1 "$FIXED_POKEMON_FILE")"
+        else
+            REQUEST="$(
+                jq -r '
+                    to_entries
+                    | map(
+                        select(
+                            (
+                                .value.image
+                                // ""
+                            )
+                            | length > 0
+                        )
+                    )
+                    | .[].key
+                ' "$POKEDEX_FILE" |
+                    shuf --head-count=1
+            )"
+        fi
+        ;;
+
     *)
+        # Permite seguir usando:
+        # fastfetch pikachu
+        # fastfetch 25
         REQUEST="$1"
         ;;
 esac

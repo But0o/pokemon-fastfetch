@@ -144,6 +144,19 @@ Ejemplos:
 EOF
 }
 
+# Procesar opciones informativas antes de validar dependencias o caché.
+case "${1:-}" in
+    --help|-h)
+        show_help
+        exit 0
+        ;;
+
+    --version|-v)
+        printf 'Pokémon Fastfetch v%s\n' "$APP_VERSION"
+        exit 0
+        ;;
+esac
+
 
 trim_text() {
     local value="${1:-}"
@@ -254,11 +267,6 @@ REQUEST=""
 FORCE_RERENDER=false
 
 case "${1:-}" in
-    --help|-h)
-        show_help
-        exit 0
-        ;;
-
     --set)
         FIXED_REQUEST="${2:-}"
 

@@ -123,14 +123,22 @@ Variables opcionales:
 EOF
 }
 
-REQUEST="${1:-}"
-
-case "$REQUEST" in
-    --help | -h)
+# Procesar opciones informativas antes de validar dependencias o caché.
+case "${1:-}" in
+    --help|-h)
         show_help
         exit 0
         ;;
 
+    --version|-v)
+        printf 'Pokémon Fastfetch renderer v%s\n' "$APP_VERSION"
+        exit 0
+        ;;
+esac
+
+REQUEST="${1:-}"
+
+case "$REQUEST" in
     "")
         pf_error "Tenés que indicar un Pokémon."
         echo "Ejemplo:" >&2

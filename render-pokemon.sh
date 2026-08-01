@@ -54,6 +54,48 @@ if [[ -z "$APP_VERSION" ]]; then
     APP_VERSION="0.0.0-unknown"
 fi
 
+show_help() {
+    cat <<EOF
+
+Pokémon Fastfetch renderer v${APP_VERSION}
+
+Uso:
+
+  render-pokemon.sh charizard
+  render-pokemon.sh pikachu
+  render-pokemon.sh 6
+  render-pokemon.sh 25
+
+El script genera un panel PNG y muestra su ruta absoluta.
+
+Variables opcionales:
+
+  POKEMON_DIR
+      Carpeta que contiene las imágenes.
+
+  POKEMON_PANEL_WIDTH
+      Ancho del panel. Predeterminado: 1580.
+
+  POKEMON_PANEL_HEIGHT
+      Alto del panel. Predeterminado: 470.
+EOF
+}
+
+# Process informational options before loading configuration,
+# creating cache directories, or validating runtime dependencies.
+case "${1:-}" in
+    --help|-h)
+        show_help
+        exit 0
+        ;;
+
+    --version|-v)
+        printf 'Pokémon Fastfetch renderer v%s\n' "$APP_VERSION"
+        exit 0
+        ;;
+esac
+
+
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/pokemon-fastfetch"
 CONFIG_FILE="$CONFIG_ROOT/config"
 
@@ -92,49 +134,6 @@ pf_require_commands \
 pf_require_json "$POKEDEX_FILE" "La caché Pokédex"
 pf_require_directory "$POKEMON_DIR" "El directorio de imágenes"
 
-# ────────────────────────────────────────────────────────────────
-# Ayuda
-# ────────────────────────────────────────────────────────────────
-
-show_help() {
-    cat <<EOF
-
-Pokémon Fastfetch renderer v${APP_VERSION}
-
-Uso:
-
-  render-pokemon.sh charizard
-  render-pokemon.sh pikachu
-  render-pokemon.sh 6
-  render-pokemon.sh 25
-
-El script genera un panel PNG y muestra su ruta absoluta.
-
-Variables opcionales:
-
-  POKEMON_DIR
-      Carpeta que contiene las imágenes.
-
-  POKEMON_PANEL_WIDTH
-      Ancho del panel. Predeterminado: 1580.
-
-  POKEMON_PANEL_HEIGHT
-      Alto del panel. Predeterminado: 470.
-EOF
-}
-
-# Procesar opciones informativas antes de validar dependencias o caché.
-case "${1:-}" in
-    --help|-h)
-        show_help
-        exit 0
-        ;;
-
-    --version|-v)
-        printf 'Pokémon Fastfetch renderer v%s\n' "$APP_VERSION"
-        exit 0
-        ;;
-esac
 
 REQUEST="${1:-}"
 
@@ -1059,8 +1058,7 @@ magick \
     "$FINAL_PANEL"
 
 if [[ ! -s "$FINAL_PANEL" ]]; then
-    echo "No se pudo generar el panel de $NAME." >&2
-    exit 1
+    pf_die "No se pudo generar el panel de $NAME."
 fi
 
 ln -sfn "$(basename "$FINAL_PANEL")" "$CURRENT_PANEL"

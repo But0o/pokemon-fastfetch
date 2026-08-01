@@ -159,11 +159,32 @@ printf '  [OK] Instalación aislada\n'
 
 printf '\n==> Probando ayudas\n'
 
-"$ROOT_DIR/install.sh" --help >/dev/null
-"$ROOT_DIR/upgrade-v1-to-v2.sh" --help >/dev/null
-"$ROOT_DIR/random-fastfetch.sh" --help >/dev/null
-"$ROOT_DIR/render-pokemon.sh" --help >/dev/null
+env \
+    HOME="$TEST_HOME" \
+    XDG_DATA_HOME="$TEST_HOME/.local/share" \
+    XDG_CONFIG_HOME="$TEST_HOME/.config" \
+    XDG_CACHE_HOME="$TEST_HOME/.cache" \
+    "$ROOT_DIR/install.sh" --help >/dev/null
+
+env \
+    HOME="$TEST_HOME" \
+    XDG_DATA_HOME="$TEST_HOME/.local/share" \
+    XDG_CONFIG_HOME="$TEST_HOME/.config" \
+    XDG_CACHE_HOME="$TEST_HOME/.cache" \
+    "$ROOT_DIR/upgrade-v1-to-v2.sh" --help >/dev/null
+
+env \
+    HOME="$TEST_HOME" \
+    XDG_DATA_HOME="$TEST_HOME/.local/share" \
+    XDG_CONFIG_HOME="$TEST_HOME/.config" \
+    XDG_CACHE_HOME="$TEST_HOME/.cache" \
+    "$ROOT_DIR/random-fastfetch.sh" --help >/dev/null
+
+env \
+    HOME="$TEST_HOME" \
+    XDG_DATA_HOME="$TEST_HOME/.local/share" \
+    XDG_CONFIG_HOME="$TEST_HOME/.config" \
+    XDG_CACHE_HOME="$TEST_HOME/.cache" \
+    "$ROOT_DIR/render-pokemon.sh" --help >/dev/null
 
 printf '  [OK] Ayudas disponibles\n'
-
-printf '\nTodos los tests finalizaron correctamente.\n'

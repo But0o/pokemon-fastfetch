@@ -2,20 +2,68 @@
 
 set -Eeuo pipefail
 
-# ╭──────────────────────────────────────────────────────────────╮
-# │ Pokémon Fastfetch v2.0                                      │
-# │ Panel Pokémon superior + información del sistema inferior   │
-# ╰──────────────────────────────────────────────────────────────╯
+# -----------------------------------------------------------------------------
+# Pokémon Fastfetch
+#
+# Main application entry point.
+#
+# Responsibilities:
+#   - Select a Pokémon
+#   - Collect system information
+#   - Render or reuse the cached Pokémon panel
+#   - Display the final dashboard inside Kitty
+#
+# Copyright (c) 2026 But0o
+# Licensed under the MIT License.
+#
+# Shell:
+#   Bash 5.0+
+#
+# Repository:
+#   https://github.com/But0o/pokemon-fastfetch
+# -----------------------------------------------------------------------------
 
 SCRIPT_DIR="$(
     cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
     pwd
 )"
 
-CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
-POKEDEX_FILE="$CACHE_ROOT/pokedex.json"
+COMMON_LIBRARY="$SCRIPT_DIR/lib/common.sh"
+
+if [[ ! -r "$COMMON_LIBRARY" ]]; then
+    printf '[ERROR] No se encontró la biblioteca común: %s\n' \
+        "$COMMON_LIBRARY" >&2
+    exit 1
+fi
+
+# shellcheck source=lib/common.sh
+source "$COMMON_LIBRARY"
+
+VERSION_FILE="$SCRIPT_DIR/VERSION"
+
+if [[ -r "$VERSION_FILE" ]]; then
+    APP_VERSION="$(
+        tr -d '[:space:]' < "$VERSION_FILE"
+    )"
+else
+    APP_VERSION="0.0.0-unknown"
+fi
+
+if [[ -z "$APP_VERSION" ]]; then
+    APP_VERSION="0.0.0-unknown"
+fi
 
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/pokemon-fastfetch"
+CONFIG_FILE="$CONFIG_ROOT/config"
+
+if [[ -r "$CONFIG_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_FILE"
+fi
+
+CACHE_ROOT="${CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch}"
+POKEDEX_FILE="$CACHE_ROOT/pokedex.json"
+
 FIXED_POKEMON_FILE="$CONFIG_ROOT/fixed-pokemon"
 
 mkdir -p "$CONFIG_ROOT"
@@ -33,15 +81,17 @@ POKEMON_PANEL_ROWS="${POKEMON_PANEL_ROWS:-22}"
 SYSTEM_PANEL_MAX_WIDTH="${SYSTEM_PANEL_MAX_WIDTH:-150}"
 
 # Espacio entre las dos columnas inferiores.
-COLUMN_GAP=6
+COLUMN_GAP="${COLUMN_GAP:-6}"
+
+SHOW_SYSTEM_INFO="${SHOW_SYSTEM_INFO:-true}"
+SHOW_COLOR_PALETTE="${SHOW_COLOR_PALETTE:-true}"
 
 # ────────────────────────────────────────────────────────────────
 # Colores ANSI
 # ────────────────────────────────────────────────────────────────
 
 RESET=$'\033[0m'
-BOLD=$'\033[1m'
-DIM=$'\033[2m'
+
 
 WHITE=$'\033[38;2;232;232;236m'
 GRAY=$'\033[38;2;158;158;170m'
@@ -61,8 +111,8 @@ MAGENTA=$'\033[38;2;224;84;214m'
 # ────────────────────────────────────────────────────────────────
 
 show_help() {
-    cat <<'EOF'
-Pokémon Fastfetch v2.0
+    cat <<EOF
+Pokémon Fastfetch v${APP_VERSION}
 
 Uso:
 
@@ -94,9 +144,6 @@ Ejemplos:
 EOF
 }
 
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
 
 trim_text() {
     local value="${1:-}"
@@ -184,49 +231,20 @@ repeat_character() {
 # ────────────────────────────────────────────────────────────────
 # Validaciones
 # ────────────────────────────────────────────────────────────────
-
-required_commands=(
-    jq
-    kitten
-    tput
-    awk
-    sed
-    uname
-    hostname
+pf_require_commands \
+    jq \
+    kitten \
+    tput \
+    awk \
+    sed \
+    uname \
+    hostname \
     df
-)
 
-for required_command in "${required_commands[@]}"; do
-    if ! command_exists "$required_command"; then
-        printf '%sFalta instalar o encontrar: %s%s\n' \
-            "$RED" \
-            "$required_command" \
-            "$RESET"
 
-        exit 1
-    fi
-done
+pf_require_json "$POKEDEX_FILE" "La caché Pokédex"
 
-if [[ ! -s "$POKEDEX_FILE" ]]; then
-    printf '%sNo existe la caché Pokédex:%s\n' "$RED" "$RESET"
-    echo "$POKEDEX_FILE"
-    exit 1
-fi
-
-if ! jq empty "$POKEDEX_FILE" >/dev/null 2>&1; then
-    printf '%sLa caché Pokédex es inválida:%s\n' "$RED" "$RESET"
-    echo "$POKEDEX_FILE"
-    exit 1
-fi
-
-if [[ ! -x "$RENDER_SCRIPT" ]]; then
-    printf '%sNo existe o no tiene permisos el renderizador:%s\n' \
-        "$RED" \
-        "$RESET"
-
-    echo "$RENDER_SCRIPT"
-    exit 1
-fi
+pf_require_executable "$RENDER_SCRIPT" "El renderizador Pokémon"
 
 # ────────────────────────────────────────────────────────────────
 # Procesar argumentos
@@ -245,7 +263,7 @@ case "${1:-}" in
         FIXED_REQUEST="${2:-}"
 
         if [[ -z "$FIXED_REQUEST" ]]; then
-            echo "Tenés que indicar un Pokémon por nombre o número."
+            pf_error "Tenés que indicar un Pokémon por nombre o número."
             echo
             echo "Ejemplos:"
             echo "  pokemon-set pikachu"
@@ -257,8 +275,7 @@ case "${1:-}" in
         TEST_PANEL="$("$RENDER_SCRIPT" "$FIXED_REQUEST" 2>/dev/null || true)"
 
         if [[ -z "$TEST_PANEL" || ! -s "$TEST_PANEL" ]]; then
-            echo "No se encontró el Pokémon: $FIXED_REQUEST"
-            exit 1
+            pf_die "No se encontró el Pokémon: $FIXED_REQUEST"
         fi
 
         printf '%s\n' "$FIXED_REQUEST" > "$FIXED_POKEMON_FILE"
@@ -341,8 +358,7 @@ case "${1:-}" in
 esac
 
 if [[ -z "$REQUEST" ]]; then
-    echo "No se pudo seleccionar un Pokémon."
-    exit 1
+    pf_die "No se pudo seleccionar un Pokémon."
 fi
 
 # ────────────────────────────────────────────────────────────────
@@ -374,8 +390,7 @@ PANEL_IMAGE="$(
 )"
 
 if [[ -z "$PANEL_IMAGE" || ! -s "$PANEL_IMAGE" ]]; then
-    echo "No se pudo obtener el panel Pokémon."
-    exit 1
+    pf_die "No se pudo obtener el panel Pokémon."
 fi
 
 # ────────────────────────────────────────────────────────────────
@@ -410,7 +425,7 @@ get_kernel() {
 get_uptime() {
     local uptime_value=""
 
-    if command_exists uptime; then
+    if pf_command_exists uptime; then
         uptime_value="$(
             uptime -p 2>/dev/null |
                 sed \
@@ -452,7 +467,7 @@ get_uptime() {
 get_packages() {
     local packages=""
 
-    if command_exists pacman; then
+    if pf_command_exists pacman; then
         packages="$(
             pacman -Qq 2>/dev/null |
                 wc -l |
@@ -463,7 +478,7 @@ get_packages() {
         return
     fi
 
-    if command_exists flatpak; then
+    if pf_command_exists flatpak; then
         packages="$(
             flatpak list --app 2>/dev/null |
                 wc -l |
@@ -519,7 +534,7 @@ get_shell() {
 get_display() {
     local display=""
 
-    if command_exists hyprctl; then
+    if pf_command_exists hyprctl; then
         display="$(
             hyprctl monitors -j 2>/dev/null |
                 jq -r '
@@ -548,7 +563,7 @@ get_display() {
         )"
     fi
 
-    if [[ -z "$display" ]] && command_exists xrandr; then
+    if [[ -z "$display" ]] && pf_command_exists xrandr; then
         display="$(
             xrandr --current 2>/dev/null |
                 awk '
@@ -614,7 +629,7 @@ get_window_manager() {
 get_terminal() {
     local version=""
 
-    if [[ "${TERM:-}" == "xterm-kitty" ]] && command_exists kitty; then
+    if [[ "${TERM:-}" == "xterm-kitty" ]] && pf_command_exists kitty; then
         version="$(
             kitty --version 2>/dev/null |
                 awk '{print $2}' ||
@@ -650,7 +665,7 @@ get_font() {
 get_cpu() {
     local cpu=""
 
-    if command_exists lscpu; then
+    if pf_command_exists lscpu; then
         cpu="$(
             lscpu 2>/dev/null |
                 awk -F: '
@@ -684,7 +699,7 @@ get_cpu() {
 get_gpu() {
     local gpu=""
 
-    if command_exists lspci; then
+    if pf_command_exists lspci; then
         gpu="$(
             lspci 2>/dev/null |
                 awk -F': ' '
@@ -765,7 +780,7 @@ get_network() {
     local interface=""
     local address=""
 
-    if command_exists ip; then
+    if pf_command_exists ip; then
         interface="$(
             ip route show default 2>/dev/null |
                 awk '
@@ -828,7 +843,7 @@ get_install_age() {
         return
     fi
 
-    if command_exists tune2fs; then
+    if pf_command_exists tune2fs; then
         printf 'No disponible'
         return
     fi
@@ -925,6 +940,10 @@ kitten icat \
 
 tput cup "$POKEMON_PANEL_ROWS" 0
 
+if [[ "$SHOW_SYSTEM_INFO" != "true" ]]; then
+    exit 0
+fi
+
 # ────────────────────────────────────────────────────────────────
 # Renderizar información inferior
 # ────────────────────────────────────────────────────────────────
@@ -1010,24 +1029,24 @@ print_two_columns \
 # Paleta inferior
 # ────────────────────────────────────────────────────────────────
 
-printf '\n'
+if [[ "$SHOW_COLOR_PALETTE" == "true" ]]; then
+    printf '\n'
 
-PALETTE="●  ●  ●  ●  ●  ●  ●  ●"
+    PALETTE_LENGTH=22
+    PALETTE_PADDING="$(((CONTENT_WIDTH - PALETTE_LENGTH) / 2))"
 
-PALETTE_LENGTH=22
-PALETTE_PADDING="$(((CONTENT_WIDTH - PALETTE_LENGTH) / 2))"
+    if ((PALETTE_PADDING < 0)); then
+        PALETTE_PADDING=0
+    fi
 
-if ((PALETTE_PADDING < 0)); then
-    PALETTE_PADDING=0
+    printf '%*s' "$PALETTE_PADDING" ''
+
+    printf '%s●%s  ' "$WHITE" "$RESET"
+    printf '%s●%s  ' "$GRAY" "$RESET"
+    printf '%s●%s  ' "$BLUE" "$RESET"
+    printf '%s●%s  ' "$PURPLE" "$RESET"
+    printf '%s●%s  ' "$MAGENTA" "$RESET"
+    printf '%s●%s  ' "$GREEN" "$RESET"
+    printf '%s●%s  ' "$YELLOW" "$RESET"
+    printf '%s●%s\n' "$RED" "$RESET"
 fi
-
-printf '%*s' "$PALETTE_PADDING" ''
-
-printf '%s●%s  ' "$WHITE" "$RESET"
-printf '%s●%s  ' "$GRAY" "$RESET"
-printf '%s●%s  ' "$BLUE" "$RESET"
-printf '%s●%s  ' "$PURPLE" "$RESET"
-printf '%s●%s  ' "$MAGENTA" "$RESET"
-printf '%s●%s  ' "$GREEN" "$RESET"
-printf '%s●%s  ' "$YELLOW" "$RESET"
-printf '%s●%s\n' "$RED" "$RESET"

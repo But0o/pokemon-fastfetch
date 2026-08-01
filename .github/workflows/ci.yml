@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Bash quality checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            jq \
+            shellcheck
+
+      - name: Validate Bash syntax
+        run: |
+          bash -n install.sh
+          bash -n uninstall.sh
+          bash -n upgrade-v1-to-v2.sh
+          bash -n random-fastfetch.sh
+          bash -n render-pokemon.sh
+          bash -n build-pokedex-cache.sh
+          bash -n lib/common.sh
+          bash -n tests/run-tests.sh
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck \
+            install.sh \
+            uninstall.sh \
+            upgrade-v1-to-v2.sh \
+            random-fastfetch.sh \
+            render-pokemon.sh \
+            build-pokedex-cache.sh \
+            lib/common.sh \
+            tests/run-tests.sh
+
+      - name: Validate Pokédex JSON
+        run: |
+          jq empty config/pokedex.json
+          jq --exit-status 'length > 0' config/pokedex.json >/dev/null
+
+      - name: Run test suite
+        env:
+          POKEMON_DIR: /tmp/pokemon-fastfetch-test-images
+        run: |
+          mkdir -p "$POKEMON_DIR"
+          printf 'fake image for installer detection\n' \
+            > "$POKEMON_DIR/test.png"
+
+          ./tests/run-tests.sh

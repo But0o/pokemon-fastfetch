@@ -2,27 +2,67 @@
 
 set -Eeuo pipefail
 
-# ────────────────────────────────────────────────────────────────
-# Pokémon Fastfetch v2
-# Renderizador del panel superior
+# -----------------------------------------------------------------------------
+# Pokémon Fastfetch
 #
-# Uso:
-#   render-pokemon-v2.sh charizard
-#   render-pokemon-v2.sh 6
+# Pokémon panel renderer.
 #
-# Salida:
-#   Imprime la ruta absoluta del panel PNG generado.
+# Responsibilities:
+#   - Resolve local Pokédex data
+#   - Locate Pokémon artwork
+#   - Generate SVG assets
+#   - Render PNG panels
+#   - Manage the render cache
 #
-# El archivo queda almacenado en caché. Si no cambian los datos
-# del Pokémon, no vuelve a ejecutar ImageMagick.
-# ────────────────────────────────────────────────────────────────
+# Copyright (c) 2026 But0o
+# Licensed under the MIT License.
+#
+# Shell:
+#   Bash 5.0+
+#
+# Repository:
+#   https://github.com/But0o/pokemon-fastfetch
+# -----------------------------------------------------------------------------
 
 SCRIPT_DIR="$(
     cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
     pwd
 )"
 
-CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
+COMMON_LIBRARY="$SCRIPT_DIR/lib/common.sh"
+
+if [[ ! -r "$COMMON_LIBRARY" ]]; then
+    printf '[ERROR] No se encontró la biblioteca común: %s\n' \
+        "$COMMON_LIBRARY" >&2
+    exit 1
+fi
+
+# shellcheck source=lib/common.sh
+source "$COMMON_LIBRARY"
+
+VERSION_FILE="$SCRIPT_DIR/VERSION"
+
+if [[ -r "$VERSION_FILE" ]]; then
+    APP_VERSION="$(
+        tr -d '[:space:]' < "$VERSION_FILE"
+    )"
+else
+    APP_VERSION="0.0.0-unknown"
+fi
+
+if [[ -z "$APP_VERSION" ]]; then
+    APP_VERSION="0.0.0-unknown"
+fi
+
+CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/pokemon-fastfetch"
+CONFIG_FILE="$CONFIG_ROOT/config"
+
+if [[ -r "$CONFIG_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_FILE"
+fi
+
+CACHE_ROOT="${CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch}"
 POKEDEX_FILE="$CACHE_ROOT/pokedex.json"
 
 PANELS_DIR="$CACHE_ROOT/panels-v2"
@@ -40,53 +80,33 @@ mkdir -p "$TEMP_DIR"
 # Dependencias
 # ────────────────────────────────────────────────────────────────
 
-DEPENDENCIES=(
-    jq
-    magick
-    sha256sum
-    fc-match
-    sed
-    awk
+pf_require_commands \
+    jq \
+    magick \
+    sha256sum \
+    fc-match \
+    sed \
+    awk \
     find
-)
 
-for COMMAND_NAME in "${DEPENDENCIES[@]}"; do
-    if ! command -v "$COMMAND_NAME" >/dev/null 2>&1; then
-        echo "Falta instalar la dependencia: $COMMAND_NAME" >&2
-        exit 1
-    fi
-done
-
-if [[ ! -s "$POKEDEX_FILE" ]]; then
-    echo "No existe la caché Pokédex:" >&2
-    echo "$POKEDEX_FILE" >&2
-    exit 1
-fi
-
-if ! jq empty "$POKEDEX_FILE" >/dev/null 2>&1; then
-    echo "La caché Pokédex contiene un JSON inválido:" >&2
-    echo "$POKEDEX_FILE" >&2
-    exit 1
-fi
-
-if [[ ! -d "$POKEMON_DIR" ]]; then
-    echo "No existe el directorio de imágenes:" >&2
-    echo "$POKEMON_DIR" >&2
-    exit 1
-fi
+pf_require_json "$POKEDEX_FILE" "La caché Pokédex"
+pf_require_directory "$POKEMON_DIR" "El directorio de imágenes"
 
 # ────────────────────────────────────────────────────────────────
 # Ayuda
 # ────────────────────────────────────────────────────────────────
 
 show_help() {
-    cat <<'EOF'
+    cat <<EOF
+
+Pokémon Fastfetch renderer v${APP_VERSION}
+
 Uso:
 
-  render-pokemon-v2.sh charizard
-  render-pokemon-v2.sh pikachu
-  render-pokemon-v2.sh 6
-  render-pokemon-v2.sh 25
+  render-pokemon.sh charizard
+  render-pokemon.sh pikachu
+  render-pokemon.sh 6
+  render-pokemon.sh 25
 
 El script genera un panel PNG y muestra su ruta absoluta.
 
@@ -112,7 +132,7 @@ case "$REQUEST" in
         ;;
 
     "")
-        echo "Tenés que indicar un Pokémon." >&2
+        pf_error "Tenés que indicar un Pokémon."
         echo "Ejemplo:" >&2
         echo "  $0 charizard" >&2
         exit 1
@@ -373,8 +393,7 @@ else
 fi
 
 if [[ -z "$POKEMON_KEY" ]]; then
-    echo "No se encontró el Pokémon: $REQUEST" >&2
-    exit 1
+    pf_die "No se encontró el Pokémon: $REQUEST"
 fi
 
 POKEMON_DATA="$(
@@ -385,8 +404,7 @@ POKEMON_DATA="$(
 )"
 
 if [[ -z "$POKEMON_DATA" || "$POKEMON_DATA" == "null" ]]; then
-    echo "No se pudo leer la información de: $POKEMON_KEY" >&2
-    exit 1
+    pf_die "No se pudo leer la información de: $POKEMON_KEY"
 fi
 
 # ────────────────────────────────────────────────────────────────
@@ -606,8 +624,8 @@ if [[ -z "$SELECTED_IMAGE" ]]; then
 fi
 
 if [[ -z "$SELECTED_IMAGE" || ! -f "$SELECTED_IMAGE" ]]; then
-    echo "No se encontró la imagen de $NAME." >&2
-    echo "Directorio consultado: $POKEMON_DIR" >&2
+    pf_error "No se encontró la imagen de $NAME."
+    pf_error "Directorio consultado: $POKEMON_DIR"
     exit 1
 fi
 
@@ -644,8 +662,7 @@ find_font() {
 FONT_FILE="$(find_font || true)"
 
 if [[ -z "$FONT_FILE" ]]; then
-    echo "No se encontró JetBrains Mono Nerd Font." >&2
-    exit 1
+    pf_die "No se encontró JetBrains Mono Nerd Font."
 fi
 
 # ────────────────────────────────────────────────────────────────

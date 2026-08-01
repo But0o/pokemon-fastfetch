@@ -2,13 +2,60 @@
 
 set -Eeuo pipefail
 
+# -----------------------------------------------------------------------------
+# Pokémon Fastfetch
+#
+# Project installer.
+#
+# Responsibilities:
+#   - Validate the repository layout
+#   - Check runtime dependencies
+#   - Install scripts and shared libraries
+#   - Generate the user configuration
+#   - Install the bundled Pokédex
+#   - Configure Fish shell integration
+#
+# Copyright (c) 2026 But0o
+# Licensed under the MIT License.
+#
+# Shell:
+#   Bash 5.0+
+#
+# Repository:
+#   https://github.com/But0o/pokemon-fastfetch
+# -----------------------------------------------------------------------------
+
 APP_NAME="pokemon-fastfetch"
-APP_VERSION="2.0.0"
 
 SOURCE_DIR="$(
     cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
     pwd
 )"
+
+COMMON_LIBRARY="$SOURCE_DIR/lib/common.sh"
+
+if [[ ! -r "$COMMON_LIBRARY" ]]; then
+    printf '[ERROR] No se encontró la biblioteca común: %s\n' \
+        "$COMMON_LIBRARY" >&2
+    exit 1
+fi
+
+# shellcheck source=lib/common.sh
+source "$COMMON_LIBRARY"
+
+VERSION_FILE="$SOURCE_DIR/VERSION"
+
+if [[ -r "$VERSION_FILE" ]]; then
+    APP_VERSION="$(
+        tr -d '[:space:]' < "$VERSION_FILE"
+    )"
+else
+    APP_VERSION="0.0.0-unknown"
+fi
+
+if [[ -z "$APP_VERSION" ]]; then
+    APP_VERSION="0.0.0-unknown"
+fi
 
 INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/$APP_NAME"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/$APP_NAME"
@@ -24,10 +71,7 @@ ENABLE_AUTOSTART=true
 
 RESET=$'\033[0m'
 BOLD=$'\033[1m'
-RED=$'\033[31m'
-GREEN=$'\033[32m'
-YELLOW=$'\033[33m'
-CYAN=$'\033[36m'
+
 
 usage() {
     cat <<EOF
@@ -50,26 +94,6 @@ Ejemplos:
 EOF
 }
 
-info() {
-    printf '%s%s[INFO]%s %s\n' "$BOLD" "$CYAN" "$RESET" "$*"
-}
-
-success() {
-    printf '%s%s[OK]%s %s\n' "$BOLD" "$GREEN" "$RESET" "$*"
-}
-
-warn() {
-    printf '%s%s[AVISO]%s %s\n' "$BOLD" "$YELLOW" "$RESET" "$*"
-}
-
-die() {
-    printf '%s%s[ERROR]%s %s\n' "$BOLD" "$RED" "$RESET" "$*" >&2
-    exit 1
-}
-
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
 
 confirm() {
     local prompt="$1"
@@ -91,21 +115,21 @@ confirm() {
 }
 
 expand_path() {
-    local value="$1"
+    local value="${1:-}"
 
+    # shellcheck disable=SC2088
     case "$value" in
         "~")
             printf '%s\n' "$HOME"
             ;;
         "~/"*)
-            printf '%s/%s\n' "$HOME" "${value#~/}"
+            printf '%s/%s\n' "$HOME" "${value#\~/}"
             ;;
         *)
             printf '%s\n' "$value"
             ;;
     esac
 }
-
 contains_image_files() {
     local directory="$1"
 
@@ -151,13 +175,16 @@ check_project_files() {
         "random-fastfetch.sh"
         "render-pokemon.sh"
         "build-pokedex-cache.sh"
+        "config/pokedex.json"
+        "lib/common.sh"
+        "VERSION"
     )
 
     local file=""
 
     for file in "${required_files[@]}"; do
         [[ -f "$SOURCE_DIR/$file" ]] ||
-            die "Falta '$file' en el repositorio: $SOURCE_DIR"
+            pf_die "Falta '$file' en el repositorio: $SOURCE_DIR"
     done
 }
 
@@ -166,14 +193,27 @@ check_script_syntax() {
         "$SOURCE_DIR/random-fastfetch.sh"
         "$SOURCE_DIR/render-pokemon.sh"
         "$SOURCE_DIR/build-pokedex-cache.sh"
+        "$SOURCE_DIR/lib/common.sh"
     )
 
     local script=""
 
     for script in "${scripts[@]}"; do
         bash -n "$script" ||
-            die "Error de sintaxis en: $script"
+            pf_die "Error de sintaxis en: $script"
     done
+}
+
+check_pokedex_file() {
+    local pokedex_file="$SOURCE_DIR/config/pokedex.json"
+
+    [[ -s "$pokedex_file" ]] ||
+        pf_die "La Pokédex del repositorio está vacía: $pokedex_file"
+
+    jq empty "$pokedex_file" >/dev/null 2>&1 ||
+        pf_die "La Pokédex del repositorio contiene un JSON inválido: $pokedex_file"
+
+    pf_success "Pokédex del repositorio validada."
 }
 
 check_dependencies() {
@@ -192,6 +232,7 @@ check_dependencies() {
         stat
         date
         tr
+        mv
         fc-match
         kitten
     )
@@ -211,32 +252,32 @@ check_dependencies() {
     local command=""
 
     for command in "${required[@]}"; do
-        if ! command_exists "$command"; then
+        if ! pf_command_exists "$command"; then
             missing+=("$command")
         fi
     done
 
-    if ! command_exists magick && ! command_exists convert; then
+    if ! pf_command_exists magick && ! pf_command_exists convert; then
         missing+=("imagemagick")
     fi
 
     if ((${#missing[@]} > 0)); then
         printf '\n'
-        warn "Faltan dependencias obligatorias:"
+        pf_warn "Faltan dependencias obligatorias:"
         printf '  - %s\n' "${missing[@]}"
         printf '\n'
 
-        if command_exists pacman; then
+        if pf_command_exists pacman; then
             printf 'En Arch/CachyOS podés instalar las principales con:\n\n'
             printf '  sudo pacman -S --needed jq imagemagick kitty fish fontconfig pciutils iproute2\n\n'
         fi
 
-        die "Instalá las dependencias faltantes y ejecutá nuevamente el instalador."
+        pf_die "Instalá las dependencias faltantes y ejecutá nuevamente el instalador."
     fi
 
     for command in "${optional[@]}"; do
-        if ! command_exists "$command"; then
-            warn "Dependencia opcional no encontrada: $command"
+        if ! pf_command_exists "$command"; then
+            pf_warn "Dependencia opcional no encontrada: $command"
         fi
     done
 }
@@ -250,7 +291,7 @@ backup_existing_installation() {
     fi
 
     if ! confirm "Se encontró una instalación existente. ¿Crear respaldo y continuar?"; then
-        die "Instalación cancelada."
+        pf_die "Instalación cancelada."
     fi
 
     timestamp="$(date +'%Y-%m-%d_%H-%M-%S')"
@@ -271,11 +312,12 @@ backup_existing_installation() {
         cp -a "$FISH_CONFIG_FILE" "$backup_dir/fish/"
     fi
 
-    success "Respaldo creado en: $backup_dir"
+    pf_success "Respaldo creado en: $backup_dir"
 }
 
 copy_project_files() {
     mkdir -p "$INSTALL_DIR"
+    mkdir -p "$INSTALL_DIR/lib"
     mkdir -p "$CONFIG_DIR"
     mkdir -p "$CACHE_DIR"
 
@@ -291,32 +333,142 @@ copy_project_files() {
         "$SOURCE_DIR/build-pokedex-cache.sh" \
         "$INSTALL_DIR/build-pokedex-cache.sh"
 
-    if [[ -f "$SOURCE_DIR/VERSION" ]]; then
-        install -m 0644 "$SOURCE_DIR/VERSION" "$INSTALL_DIR/VERSION"
-    else
-        printf '%s\n' "$APP_VERSION" > "$INSTALL_DIR/VERSION"
-    fi
+    install -m 0755 \
+        "$SOURCE_DIR/uninstall.sh" \
+        "$INSTALL_DIR/uninstall.sh"
+
+    install -m 0644 \
+        "$SOURCE_DIR/lib/common.sh" \
+        "$INSTALL_DIR/lib/common.sh"
+
+    install -m 0644 \
+        "$SOURCE_DIR/VERSION" \
+        "$INSTALL_DIR/VERSION"
 
     if [[ -f "$SOURCE_DIR/LICENSE" ]]; then
-        install -m 0644 "$SOURCE_DIR/LICENSE" "$INSTALL_DIR/LICENSE"
+        install -m 0644 \
+            "$SOURCE_DIR/LICENSE" \
+            "$INSTALL_DIR/LICENSE"
     fi
 
-    success "Scripts instalados en: $INSTALL_DIR"
+    pf_success "Scripts instalados en: $INSTALL_DIR"
 }
 
 write_config() {
     local pokemon_dir="$1"
+    local config_file="$CONFIG_DIR/config"
+    local temporary_file="$CONFIG_DIR/config.tmp"
 
-    cat > "$CONFIG_DIR/config" <<EOF
-# Generado por Pokémon Fastfetch ${APP_VERSION}
+    local panel_width="1580"
+    local panel_height="470"
+    local panel_rows="22"
+    local system_max_width="150"
+    local column_gap="6"
+    local show_system_info="true"
+    local show_color_palette="true"
+
+    if [[ -r "$config_file" ]]; then
+        # Leemos únicamente las opciones visuales conocidas.
+        # Las rutas se regeneran siempre para evitar valores antiguos.
+        panel_width="$(
+            awk -F= '
+                $1 == "POKEMON_PANEL_WIDTH" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        panel_height="$(
+            awk -F= '
+                $1 == "POKEMON_PANEL_HEIGHT" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        panel_rows="$(
+            awk -F= '
+                $1 == "POKEMON_PANEL_ROWS" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        system_max_width="$(
+            awk -F= '
+                $1 == "SYSTEM_PANEL_MAX_WIDTH" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        column_gap="$(
+            awk -F= '
+                $1 == "COLUMN_GAP" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        show_system_info="$(
+            awk -F= '
+                $1 == "SHOW_SYSTEM_INFO" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        show_color_palette="$(
+            awk -F= '
+                $1 == "SHOW_COLOR_PALETTE" {
+                    print substr($0, index($0, "=") + 1)
+                    exit
+                }
+            ' "$config_file"
+        )"
+
+        panel_width="${panel_width:-1580}"
+        panel_height="${panel_height:-470}"
+        panel_rows="${panel_rows:-22}"
+        system_max_width="${system_max_width:-150}"
+        column_gap="${column_gap:-6}"
+        show_system_info="${show_system_info:-true}"
+        show_color_palette="${show_color_palette:-true}"
+    fi
+
+    cat > "$temporary_file" <<EOF
+# Pokémon Fastfetch ${APP_VERSION}
+# Archivo administrado por install.sh
+
+# Rutas
 POKEMON_DIR=$(printf '%q' "$pokemon_dir")
 CACHE_DIR=$(printf '%q' "$CACHE_DIR")
 INSTALL_DIR=$(printf '%q' "$INSTALL_DIR")
+
+# Panel Pokémon
+POKEMON_PANEL_WIDTH=$panel_width
+POKEMON_PANEL_HEIGHT=$panel_height
+POKEMON_PANEL_ROWS=$panel_rows
+
+# Panel del sistema
+SYSTEM_PANEL_MAX_WIDTH=$system_max_width
+COLUMN_GAP=$column_gap
+
+# Opciones visuales
+SHOW_SYSTEM_INFO=$show_system_info
+SHOW_COLOR_PALETTE=$show_color_palette
 EOF
 
-    chmod 0600 "$CONFIG_DIR/config"
+    chmod 0600 "$temporary_file"
+    mv -f "$temporary_file" "$config_file"
 
-    success "Configuración guardada en: $CONFIG_DIR/config"
+    pf_success "Configuración actualizada: $config_file"
 }
 
 ensure_pokedex_cache() {
@@ -325,10 +477,11 @@ ensure_pokedex_cache() {
 
     local cache_candidates=(
         "$CACHE_DIR/pokedex.json"
-        "$HOME/.cache/pokemon-fastfetch/pokedex.json"
+        "$SOURCE_DIR/config/pokedex.json"
         "$SOURCE_DIR/cache/pokedex.json"
         "$SOURCE_DIR/pokedex.json"
     )
+  
 
     local candidate=""
 
@@ -341,17 +494,17 @@ ensure_pokedex_cache() {
 
     if [[ -n "$source_cache" && "$source_cache" != "$destination_cache" ]]; then
         cp -f "$source_cache" "$destination_cache"
-        success "Caché Pokédex copiada desde: $source_cache"
+        pf_success "Caché Pokédex copiada desde: $source_cache"
         return 0
     fi
 
     if [[ -s "$destination_cache" ]] && jq empty "$destination_cache" >/dev/null 2>&1; then
-        success "Caché Pokédex existente conservada."
+        pf_success "Caché Pokédex existente conservada."
         return 0
     fi
 
-    warn "No se encontró una caché Pokédex válida."
-    warn "Después de instalar, ejecutá:"
+    pf_warn "No se encontró una caché Pokédex válida."
+    pf_warn "Después de instalar, ejecutá:"
     printf '\n  %q\n\n' "$INSTALL_DIR/build-pokedex-cache.sh"
 }
 
@@ -362,6 +515,7 @@ write_fish_config() {
         printf '# Pokémon Fastfetch %s\n' "$APP_VERSION"
         printf '# Generado automáticamente por install.sh\n\n'
         printf 'function fastfetch --description "Pokémon Fastfetch"\n'
+        # shellcheck disable=SC2016
         printf '    "%s/random-fastfetch.sh" $argv\n' "$INSTALL_DIR"
         printf 'end\n'
 
@@ -380,7 +534,7 @@ EOF
         fi
     } > "$FISH_CONFIG_FILE"
 
-    success "Integración de Fish creada en: $FISH_CONFIG_FILE"
+    pf_success "Integración de Fish creada en: $FISH_CONFIG_FILE"
 }
 
 validate_installation() {
@@ -388,23 +542,37 @@ validate_installation() {
         "$INSTALL_DIR/random-fastfetch.sh"
         "$INSTALL_DIR/render-pokemon.sh"
         "$INSTALL_DIR/build-pokedex-cache.sh"
+        "$INSTALL_DIR/uninstall.sh"
     )
 
     local script=""
 
     for script in "${installed_scripts[@]}"; do
         [[ -x "$script" ]] ||
-            die "El archivo no quedó ejecutable: $script"
+            pf_die "El archivo no quedó ejecutable: $script"
 
         bash -n "$script" ||
-            die "Error de sintaxis después de instalar: $script"
+            pf_die "Error de sintaxis después de instalar: $script"
     done
 
+    local installed_library="$INSTALL_DIR/lib/common.sh"
+
+    [[ -r "$installed_library" ]] ||
+        pf_die "No se instaló correctamente la biblioteca común."
+
+    bash -n "$installed_library" ||
+        pf_die "La biblioteca común instalada contiene errores de sintaxis."
+
+    # NUEVO BLOQUE
+    pf_require_nonempty_file \
+        "$INSTALL_DIR/VERSION" \
+        "El archivo VERSION instalado"
+
     [[ -r "$CONFIG_DIR/config" ]] ||
-        die "No se creó el archivo de configuración."
+        pf_die "No se creó el archivo de configuración."
 
     [[ -r "$FISH_CONFIG_FILE" ]] ||
-        die "No se creó la configuración de Fish."
+        pf_die "No se creó la configuración de Fish."
 }
 
 parse_arguments() {
@@ -422,7 +590,7 @@ parse_arguments() {
 
             --pokemon-dir)
                 (($# >= 2)) ||
-                    die "Falta la ruta después de --pokemon-dir."
+                    pf_die "Falta la ruta después de --pokemon-dir."
 
                 POKEMON_DIR_OVERRIDE="$2"
                 shift 2
@@ -434,7 +602,7 @@ parse_arguments() {
                 ;;
 
             *)
-                die "Opción desconocida: $1"
+                pf_die "Opción desconocida: $1"
                 ;;
         esac
     done
@@ -455,7 +623,7 @@ main() {
 
     if [[ -z "$pokemon_dir" ]]; then
         printf '\n'
-        warn "No se encontró automáticamente la carpeta de imágenes de pokimg."
+        pf_warn "No se encontró automáticamente la carpeta de imágenes de pokimg."
         printf 'Ubicaciones revisadas:\n'
         printf '  - %s\n' \
             "$HOME/.local/share/pokimg/images" \
@@ -463,10 +631,10 @@ main() {
             "$HOME/.local/share/pokimg" \
             "$HOME/pokimg"
         printf '\n'
-        die 'Indicá la ruta manualmente con: ./install.sh --pokemon-dir "/ruta/a/images"'
+        pf_die "Indicá la ruta manualmente con: ./install.sh --pokemon-dir \"/ruta/a/imagenes\""
     fi
 
-    success "Imágenes detectadas en: $pokemon_dir"
+    pf_success "Imágenes detectadas en: $pokemon_dir"
 
     backup_existing_installation
     copy_project_files
@@ -476,14 +644,14 @@ main() {
     validate_installation
 
     printf '\n'
-    success "Instalación completada."
+    pf_success "Instalación completada."
     printf '\n'
     printf 'Abrí una terminal Kitty nueva o ejecutá:\n\n'
     printf '  source %q\n' "$FISH_CONFIG_FILE"
     printf '  fastfetch\n\n'
 
     if [[ "$ENABLE_AUTOSTART" == "false" ]]; then
-        info "El inicio automático quedó desactivado."
+        pf_info "El inicio automático quedó desactivado."
     fi
 }
 

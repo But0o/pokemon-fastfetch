@@ -2,6 +2,43 @@
 
 set -Eeuo pipefail
 
+# -----------------------------------------------------------------------------
+# Pokémon Fastfetch
+#
+# Pokédex cache builder.
+#
+# Responsibilities:
+#   - Enrich the bundled Pokédex
+#   - Retrieve data from PokeAPI
+#   - Preserve existing cache entries
+#   - Validate the generated cache
+#
+# Copyright (c) 2026 But0o
+# Licensed under the MIT License.
+#
+# Shell:
+#   Bash 5.0+
+#
+# Repository:
+#   https://github.com/But0o/pokemon-fastfetch
+# -----------------------------------------------------------------------------
+
+SCRIPT_DIR="$(
+    cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1
+    pwd
+)"
+
+COMMON_LIBRARY="$SCRIPT_DIR/lib/common.sh"
+
+if [[ ! -r "$COMMON_LIBRARY" ]]; then
+    printf '[ERROR] No se encontró la biblioteca común: %s\n' \
+        "$COMMON_LIBRARY" >&2
+    exit 1
+fi
+
+# shellcheck source=lib/common.sh
+source "$COMMON_LIBRARY"
+
 # ────────────────────────────────────────────────────────────────
 # Pokémon Fastfetch v2
 # Completa la caché existente con estadísticas y habilidades.
@@ -10,7 +47,15 @@ set -Eeuo pipefail
 # El script principal no necesitará internet.
 # ────────────────────────────────────────────────────────────────
 
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch"
+CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/pokemon-fastfetch"
+CONFIG_FILE="$CONFIG_ROOT/config"
+
+if [[ -r "$CONFIG_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG_FILE"
+fi
+
+CACHE_DIR="${CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/pokemon-fastfetch}"
 CACHE_FILE="$CACHE_DIR/pokedex.json"
 TEMP_DIR="$CACHE_DIR/build-v2"
 TEMP_JSONL="$TEMP_DIR/pokemon.jsonl"
@@ -25,8 +70,7 @@ mkdir -p "$TEMP_DIR"
 # Colores
 # ────────────────────────────────────────────────────────────────
 
-RED=$'\033[31m'
-GREEN=$'\033[32m'
+
 YELLOW=$'\033[33m'
 CYAN=$'\033[36m'
 BOLD=$'\033[1m'
@@ -36,48 +80,13 @@ RESET=$'\033[0m'
 # Dependencias
 # ────────────────────────────────────────────────────────────────
 
-dependencies=(
-    jq
-    curl
-)
-
-for dependency in "${dependencies[@]}"; do
-    if ! command -v "$dependency" >/dev/null 2>&1; then
-        printf '%sFalta instalar: %s%s\n' \
-            "$RED" \
-            "$dependency" \
-            "$RESET"
-
-        exit 1
-    fi
-done
+pf_require_commands jq curl
 
 # ────────────────────────────────────────────────────────────────
 # Comprobar caché actual
 # ────────────────────────────────────────────────────────────────
 
-if [[ ! -s "$CACHE_FILE" ]]; then
-    printf '%sNo existe la caché actual:%s\n' \
-        "$RED" \
-        "$RESET"
-
-    echo "$CACHE_FILE"
-    echo
-    echo "Primero ejecutá tu generador actual:"
-    echo
-    echo "  ~/pokemon-fastfetch/build-pokedex-cache.sh"
-
-    exit 1
-fi
-
-if ! jq empty "$CACHE_FILE" >/dev/null 2>&1; then
-    printf '%sEl archivo JSON actual está dañado:%s\n' \
-        "$RED" \
-        "$RESET"
-
-    echo "$CACHE_FILE"
-    exit 1
-fi
+pf_require_json "$CACHE_FILE" "La caché Pokédex"
 
 # ────────────────────────────────────────────────────────────────
 # Copia de seguridad
@@ -87,11 +96,7 @@ BACKUP_FILE="$CACHE_DIR/pokedex-backup-$(date +%Y%m%d-%H%M%S).json"
 
 cp "$CACHE_FILE" "$BACKUP_FILE"
 
-printf '%sCopia de seguridad creada:%s\n' \
-    "$CYAN" \
-    "$RESET"
-
-echo "$BACKUP_FILE"
+pf_success "Copia de seguridad creada: $BACKUP_FILE"
 echo
 
 # Limpiar resultado temporal anterior.
@@ -320,11 +325,7 @@ jq -s '
 ' "$TEMP_JSONL" > "$NEW_CACHE"
 
 if ! jq empty "$NEW_CACHE" >/dev/null 2>&1; then
-    printf '%sNo se pudo generar la nueva caché.%s\n' \
-        "$RED" \
-        "$RESET"
-
-    exit 1
+    pf_die "No se pudo generar la nueva caché."
 fi
 
 NEW_TOTAL="$(
@@ -332,13 +333,9 @@ NEW_TOTAL="$(
 )"
 
 if [[ "$NEW_TOTAL" -ne "$TOTAL" ]]; then
-    printf '%sLa cantidad de Pokémon no coincide.%s\n' \
-        "$RED" \
-        "$RESET"
-
-    echo "Original: $TOTAL"
-    echo "Nueva:    $NEW_TOTAL"
-
+    pf_error "La cantidad de Pokémon no coincide."
+    echo "Original: $TOTAL" >&2
+    echo "Nueva:    $NEW_TOTAL" >&2
     exit 1
 fi
 
@@ -374,9 +371,8 @@ COMPLETE_COUNT="$(
 )"
 
 echo
-printf '%sCaché v2 generada correctamente.%s\n' \
-    "$GREEN" \
-    "$RESET"
+
+pf_success "Caché v2 generada correctamente."
 
 echo
 echo "Archivo:"

@@ -49,6 +49,7 @@ scripts=(
     "$ROOT_DIR/random-fastfetch.sh"
     "$ROOT_DIR/render-pokemon.sh"
     "$ROOT_DIR/build-pokedex-cache.sh"
+    "$ROOT_DIR/add-missing-pokemon.sh"
     "$ROOT_DIR/lib/common.sh"
 )
 
@@ -67,6 +68,7 @@ required_files=(
     "$ROOT_DIR/README.md"
     "$ROOT_DIR/CHANGELOG.md"
     "$ROOT_DIR/config/pokedex.json"
+    "$ROOT_DIR/add-missing-pokemon.sh"
     "$ROOT_DIR/lib/common.sh"
 )
 
@@ -87,12 +89,31 @@ pokemon_count="$(
     jq 'length' "$ROOT_DIR/config/pokedex.json"
 )"
 
-if ((pokemon_count <= 0)); then
-    printf '[ERROR] La Pokédex no contiene entradas.\n' >&2
+if [[ "$pokemon_count" -ne 898 ]]; then
+    printf '[ERROR] Se esperaban 898 Pokémon y se encontraron %s.\n' \
+        "$pokemon_count" >&2
     exit 1
 fi
 
-printf '  [OK] %s Pokémon\n' "$pokemon_count"
+unique_id_count="$(
+    jq '
+        [
+            .[]
+            | .id
+        ]
+        | unique
+        | length
+    ' "$ROOT_DIR/config/pokedex.json"
+)"
+
+if [[ "$unique_id_count" -ne "$pokemon_count" ]]; then
+    printf '[ERROR] Se detectaron IDs duplicados en la Pokédex.\n' >&2
+    printf 'Entradas: %s\n' "$pokemon_count" >&2
+    printf 'IDs únicos: %s\n' "$unique_id_count" >&2
+    exit 1
+fi
+
+printf '  [OK] %s Pokémon con IDs únicos\n' "$pokemon_count"
 
 printf '\n==> Probando biblioteca común\n'
 
@@ -148,14 +169,30 @@ installed_count="$(
     jq 'length' "$installed_cache"
 )"
 
-if [[ "$installed_count" != "$pokemon_count" ]]; then
+if [[ "$installed_count" -ne "$pokemon_count" ]]; then
     printf '[ERROR] La Pokédex instalada tiene %s entradas; se esperaban %s.\n' \
         "$installed_count" \
         "$pokemon_count" >&2
     exit 1
 fi
 
-printf '  [OK] Instalación aislada\n'
+installed_unique_id_count="$(
+    jq '
+        [
+            .[]
+            | .id
+        ]
+        | unique
+        | length
+    ' "$installed_cache"
+)"
+
+if [[ "$installed_unique_id_count" -ne "$installed_count" ]]; then
+    printf '[ERROR] La Pokédex instalada contiene IDs duplicados.\n' >&2
+    exit 1
+fi
+
+printf '  [OK] Instalación aislada con %s Pokémon\n' "$installed_count"
 
 printf '\n==> Probando ayudas\n'
 
@@ -187,4 +224,13 @@ env \
     XDG_CACHE_HOME="$TEST_HOME/.cache" \
     "$ROOT_DIR/render-pokemon.sh" --help >/dev/null
 
+env \
+    HOME="$TEST_HOME" \
+    XDG_DATA_HOME="$TEST_HOME/.local/share" \
+    XDG_CONFIG_HOME="$TEST_HOME/.config" \
+    XDG_CACHE_HOME="$TEST_HOME/.cache" \
+    "$ROOT_DIR/add-missing-pokemon.sh" --help >/dev/null
+
 printf '  [OK] Ayudas disponibles\n'
+
+printf '\nTodos los tests finalizaron correctamente.\n'

@@ -43,6 +43,7 @@ jobs:
           bash -n build-pokedex-cache.sh
           bash -n lib/common.sh
           bash -n tests/run-tests.sh
+          bash -n add-missing-pokemon.sh
 
       - name: Run ShellCheck
         run: |
@@ -53,13 +54,15 @@ jobs:
             random-fastfetch.sh \
             render-pokemon.sh \
             build-pokedex-cache.sh \
+            add-missing-pokemon.sh \
             lib/common.sh \
             tests/run-tests.sh
 
       - name: Validate Pokédex JSON
         run: |
           jq empty config/pokedex.json
-          jq --exit-status 'length > 0' config/pokedex.json >/dev/null
+          test "$(jq 'length' config/pokedex.json)" -eq 898
+          test "$(jq '[.[].id] | unique | length' config/pokedex.json)" -eq 898
 
       - name: Run test suite
         env:

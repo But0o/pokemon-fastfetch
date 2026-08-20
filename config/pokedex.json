@@ -28579,5 +28579,863 @@
       "speed": 80
     },
     "base_experience": 250
+  },
+  "aegislash": {
+    "id": 681,
+    "name": "Aegislash",
+    "api_name": "aegislash",
+    "image": "aegislash.png",
+    "types": [
+      "steel",
+      "ghost"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 1.7,
+    "weight_kg": 53,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "stance-change"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 50,
+      "defense": 140,
+      "special_attack": 50,
+      "special_defense": 140,
+      "speed": 60
+    },
+    "base_experience": 234
+  },
+  "basculin": {
+    "id": 550,
+    "name": "Basculin",
+    "api_name": "basculin",
+    "image": "basculin.png",
+    "types": [
+      "water"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1,
+    "weight_kg": 18,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "adaptability",
+      "mold-breaker",
+      "reckless"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 92,
+      "defense": 65,
+      "special_attack": 80,
+      "special_defense": 55,
+      "speed": 98
+    },
+    "base_experience": 161
+  },
+  "darmanitan": {
+    "id": 555,
+    "name": "Darmanitan",
+    "api_name": "darmanitan",
+    "image": "darmanitan.png",
+    "types": [
+      "fire"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.3,
+    "weight_kg": 92.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "sheer-force",
+      "zen-mode"
+    ],
+    "stats": {
+      "hp": 105,
+      "attack": 140,
+      "defense": 55,
+      "special_attack": 30,
+      "special_defense": 55,
+      "speed": 95
+    },
+    "base_experience": 168
+  },
+  "deoxys": {
+    "id": 386,
+    "name": "Deoxys",
+    "api_name": "deoxys",
+    "image": "deoxys.png",
+    "types": [
+      "psychic"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.7,
+    "weight_kg": 60.8,
+    "legendary": false,
+    "mythical": true,
+    "baby": false,
+    "abilities": [
+      "pressure"
+    ],
+    "stats": {
+      "hp": 50,
+      "attack": 150,
+      "defense": 50,
+      "special_attack": 150,
+      "special_defense": 50,
+      "speed": 150
+    },
+    "base_experience": 270
+  },
+  "eiscue": {
+    "id": 875,
+    "name": "Eiscue",
+    "api_name": "eiscue",
+    "image": "eiscue.png",
+    "types": [
+      "ice"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.4,
+    "weight_kg": 89,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "ice-face"
+    ],
+    "stats": {
+      "hp": 75,
+      "attack": 80,
+      "defense": 110,
+      "special_attack": 65,
+      "special_defense": 90,
+      "speed": 50
+    },
+    "base_experience": 165
+  },
+  "frillish": {
+    "id": 592,
+    "name": "Frillish",
+    "api_name": "frillish",
+    "image": "frillish.png",
+    "types": [
+      "water",
+      "ghost"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.2,
+    "weight_kg": 33,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "damp",
+      "water-absorb",
+      "cursed-body"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 40,
+      "defense": 50,
+      "special_attack": 65,
+      "special_defense": 85,
+      "speed": 40
+    },
+    "base_experience": 67
+  },
+  "giratina": {
+    "id": 487,
+    "name": "Giratina",
+    "api_name": "giratina",
+    "image": "giratina.png",
+    "types": [
+      "ghost",
+      "dragon"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 4.5,
+    "weight_kg": 750,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "pressure",
+      "telepathy"
+    ],
+    "stats": {
+      "hp": 150,
+      "attack": 100,
+      "defense": 120,
+      "special_attack": 100,
+      "special_defense": 120,
+      "speed": 90
+    },
+    "base_experience": 306
+  },
+  "gourgeist": {
+    "id": 711,
+    "name": "Gourgeist",
+    "api_name": "gourgeist",
+    "image": "gourgeist.png",
+    "types": [
+      "ghost",
+      "grass"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 0.9,
+    "weight_kg": 12.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "pickup",
+      "frisk",
+      "insomnia"
+    ],
+    "stats": {
+      "hp": 65,
+      "attack": 90,
+      "defense": 122,
+      "special_attack": 58,
+      "special_defense": 75,
+      "speed": 84
+    },
+    "base_experience": 173
+  },
+  "indeedee": {
+    "id": 876,
+    "name": "Indeedee",
+    "api_name": "indeedee",
+    "image": "indeedee.png",
+    "types": [
+      "psychic",
+      "normal"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 0.9,
+    "weight_kg": 28,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "inner-focus",
+      "synchronize",
+      "psychic-surge"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 65,
+      "defense": 55,
+      "special_attack": 105,
+      "special_defense": 95,
+      "speed": 95
+    },
+    "base_experience": 166
+  },
+  "jellicent": {
+    "id": 593,
+    "name": "Jellicent",
+    "api_name": "jellicent",
+    "image": "jellicent.png",
+    "types": [
+      "water",
+      "ghost"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 2.2,
+    "weight_kg": 135,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "damp",
+      "water-absorb",
+      "cursed-body"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 60,
+      "defense": 70,
+      "special_attack": 85,
+      "special_defense": 105,
+      "speed": 60
+    },
+    "base_experience": 168
+  },
+  "keldeo": {
+    "id": 647,
+    "name": "Keldeo",
+    "api_name": "keldeo",
+    "image": "keldeo.png",
+    "types": [
+      "water",
+      "fighting"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.4,
+    "weight_kg": 48.5,
+    "legendary": false,
+    "mythical": true,
+    "baby": false,
+    "abilities": [
+      "justified"
+    ],
+    "stats": {
+      "hp": 91,
+      "attack": 72,
+      "defense": 90,
+      "special_attack": 129,
+      "special_defense": 90,
+      "speed": 108
+    },
+    "base_experience": 261
+  },
+  "landorus": {
+    "id": 645,
+    "name": "Landorus",
+    "api_name": "landorus",
+    "image": "landorus.png",
+    "types": [
+      "ground",
+      "flying"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.5,
+    "weight_kg": 68,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "sheer-force",
+      "sand-force"
+    ],
+    "stats": {
+      "hp": 89,
+      "attack": 125,
+      "defense": 90,
+      "special_attack": 115,
+      "special_defense": 80,
+      "speed": 101
+    },
+    "base_experience": 270
+  },
+  "lycanroc": {
+    "id": 745,
+    "name": "Lycanroc",
+    "api_name": "lycanroc",
+    "image": "lycanroc.png",
+    "types": [
+      "rock"
+    ],
+    "region": "Alola",
+    "generation": 7,
+    "height_m": 0.8,
+    "weight_kg": 25,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "keen-eye",
+      "steadfast",
+      "sand-rush"
+    ],
+    "stats": {
+      "hp": 75,
+      "attack": 115,
+      "defense": 65,
+      "special_attack": 55,
+      "special_defense": 65,
+      "speed": 112
+    },
+    "base_experience": 170
+  },
+  "meloetta": {
+    "id": 648,
+    "name": "Meloetta",
+    "api_name": "meloetta",
+    "image": "meloetta.png",
+    "types": [
+      "normal",
+      "psychic"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 0.6,
+    "weight_kg": 6.5,
+    "legendary": false,
+    "mythical": true,
+    "baby": false,
+    "abilities": [
+      "serene-grace"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 77,
+      "defense": 77,
+      "special_attack": 128,
+      "special_defense": 128,
+      "speed": 90
+    },
+    "base_experience": 270
+  },
+  "meowstic": {
+    "id": 678,
+    "name": "Meowstic",
+    "api_name": "meowstic",
+    "image": "meowstic.png",
+    "types": [
+      "psychic"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 0.6,
+    "weight_kg": 8.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "keen-eye",
+      "infiltrator",
+      "prankster"
+    ],
+    "stats": {
+      "hp": 74,
+      "attack": 48,
+      "defense": 76,
+      "special_attack": 83,
+      "special_defense": 81,
+      "speed": 104
+    },
+    "base_experience": 163
+  },
+  "mimikyu": {
+    "id": 778,
+    "name": "Mimikyu",
+    "api_name": "mimikyu",
+    "image": "mimikyu.png",
+    "types": [
+      "ghost",
+      "fairy"
+    ],
+    "region": "Alola",
+    "generation": 7,
+    "height_m": 0.2,
+    "weight_kg": 0.7,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "disguise"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 90,
+      "defense": 80,
+      "special_attack": 50,
+      "special_defense": 105,
+      "speed": 96
+    },
+    "base_experience": 167
+  },
+  "minior": {
+    "id": 774,
+    "name": "Minior",
+    "api_name": "minior",
+    "image": "minior.png",
+    "types": [
+      "rock",
+      "flying"
+    ],
+    "region": "Alola",
+    "generation": 7,
+    "height_m": 0.3,
+    "weight_kg": 40,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "shields-down"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 60,
+      "defense": 100,
+      "special_attack": 60,
+      "special_defense": 100,
+      "speed": 60
+    },
+    "base_experience": 154
+  },
+  "morpeko": {
+    "id": 877,
+    "name": "Morpeko",
+    "api_name": "morpeko",
+    "image": "morpeko.png",
+    "types": [
+      "electric",
+      "dark"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 0.3,
+    "weight_kg": 3,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "hunger-switch"
+    ],
+    "stats": {
+      "hp": 58,
+      "attack": 95,
+      "defense": 58,
+      "special_attack": 70,
+      "special_defense": 58,
+      "speed": 97
+    },
+    "base_experience": 153
+  },
+  "oricorio": {
+    "id": 741,
+    "name": "Oricorio",
+    "api_name": "oricorio",
+    "image": "oricorio.png",
+    "types": [
+      "fire",
+      "flying"
+    ],
+    "region": "Alola",
+    "generation": 7,
+    "height_m": 0.6,
+    "weight_kg": 3.4,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "dancer"
+    ],
+    "stats": {
+      "hp": 75,
+      "attack": 70,
+      "defense": 70,
+      "special_attack": 98,
+      "special_defense": 70,
+      "speed": 93
+    },
+    "base_experience": 167
+  },
+  "pumpkaboo": {
+    "id": 710,
+    "name": "Pumpkaboo",
+    "api_name": "pumpkaboo",
+    "image": "pumpkaboo.png",
+    "types": [
+      "ghost",
+      "grass"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 0.4,
+    "weight_kg": 5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "pickup",
+      "frisk",
+      "insomnia"
+    ],
+    "stats": {
+      "hp": 49,
+      "attack": 66,
+      "defense": 70,
+      "special_attack": 44,
+      "special_defense": 55,
+      "speed": 51
+    },
+    "base_experience": 67
+  },
+  "pyroar": {
+    "id": 668,
+    "name": "Pyroar",
+    "api_name": "pyroar",
+    "image": "pyroar.png",
+    "types": [
+      "fire",
+      "normal"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 1.5,
+    "weight_kg": 81.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "rivalry",
+      "unnerve",
+      "moxie"
+    ],
+    "stats": {
+      "hp": 86,
+      "attack": 68,
+      "defense": 72,
+      "special_attack": 109,
+      "special_defense": 66,
+      "speed": 106
+    },
+    "base_experience": 177
+  },
+  "shaymin": {
+    "id": 492,
+    "name": "Shaymin",
+    "api_name": "shaymin",
+    "image": "shaymin.png",
+    "types": [
+      "grass"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 0.2,
+    "weight_kg": 2.1,
+    "legendary": false,
+    "mythical": true,
+    "baby": false,
+    "abilities": [
+      "natural-cure"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 100,
+      "defense": 100,
+      "special_attack": 100,
+      "special_defense": 100,
+      "speed": 100
+    },
+    "base_experience": 270
+  },
+  "thundurus": {
+    "id": 642,
+    "name": "Thundurus",
+    "api_name": "thundurus",
+    "image": "thundurus.png",
+    "types": [
+      "electric",
+      "flying"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.5,
+    "weight_kg": 61,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "defiant",
+      "prankster"
+    ],
+    "stats": {
+      "hp": 79,
+      "attack": 115,
+      "defense": 70,
+      "special_attack": 125,
+      "special_defense": 80,
+      "speed": 111
+    },
+    "base_experience": 261
+  },
+  "tornadus": {
+    "id": 641,
+    "name": "Tornadus",
+    "api_name": "tornadus",
+    "image": "tornadus.png",
+    "types": [
+      "flying"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.5,
+    "weight_kg": 63,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "defiant",
+      "prankster"
+    ],
+    "stats": {
+      "hp": 79,
+      "attack": 115,
+      "defense": 70,
+      "special_attack": 125,
+      "special_defense": 80,
+      "speed": 111
+    },
+    "base_experience": 261
+  },
+  "toxtricity": {
+    "id": 849,
+    "name": "Toxtricity",
+    "api_name": "toxtricity",
+    "image": "toxtricity.png",
+    "types": [
+      "electric",
+      "poison"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.6,
+    "weight_kg": 40,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "plus",
+      "technician",
+      "punk-rock"
+    ],
+    "stats": {
+      "hp": 75,
+      "attack": 98,
+      "defense": 70,
+      "special_attack": 114,
+      "special_defense": 70,
+      "speed": 75
+    },
+    "base_experience": 176
+  },
+  "urshifu": {
+    "id": 892,
+    "name": "Urshifu",
+    "api_name": "urshifu",
+    "image": "urshifu.png",
+    "types": [
+      "fighting",
+      "dark"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.9,
+    "weight_kg": 105,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "unseen-fist"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 130,
+      "defense": 100,
+      "special_attack": 63,
+      "special_defense": 60,
+      "speed": 97
+    },
+    "base_experience": 275
+  },
+  "wishiwashi": {
+    "id": 746,
+    "name": "Wishiwashi",
+    "api_name": "wishiwashi",
+    "image": "wishiwashi.png",
+    "types": [
+      "water"
+    ],
+    "region": "Alola",
+    "generation": 7,
+    "height_m": 0.2,
+    "weight_kg": 0.3,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "schooling"
+    ],
+    "stats": {
+      "hp": 45,
+      "attack": 20,
+      "defense": 20,
+      "special_attack": 25,
+      "special_defense": 25,
+      "speed": 40
+    },
+    "base_experience": 61
+  },
+  "wormadam": {
+    "id": 413,
+    "name": "Wormadam",
+    "api_name": "wormadam",
+    "image": "wormadam.png",
+    "types": [
+      "bug",
+      "grass"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 0.5,
+    "weight_kg": 6.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "anticipation",
+      "overcoat"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 59,
+      "defense": 85,
+      "special_attack": 79,
+      "special_defense": 105,
+      "speed": 36
+    },
+    "base_experience": 148
+  },
+  "zygarde": {
+    "id": 718,
+    "name": "Zygarde",
+    "api_name": "zygarde",
+    "image": "zygarde.png",
+    "types": [
+      "dragon",
+      "ground"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 5,
+    "weight_kg": 305,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "aura-break"
+    ],
+    "stats": {
+      "hp": 108,
+      "attack": 100,
+      "defense": 121,
+      "special_attack": 81,
+      "special_defense": 95,
+      "speed": 95
+    },
+    "base_experience": 270
   }
 }

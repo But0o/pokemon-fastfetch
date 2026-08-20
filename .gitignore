@@ -13,6 +13,7 @@ generated/
 # Backups
 # --------------------------------------------------
 backups/
+config/pokedex-backup-*.json
 *.backup
 *.bak
 *.old

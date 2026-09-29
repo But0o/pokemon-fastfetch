@@ -267,6 +267,28 @@ else
 
         printf '  [OK] Panel %s\n' "$size"
     done
+
+    # Shiny: usa shiny/<imagen> y genera un panel aparte.
+    mkdir -p "$RENDER_IMAGES/shiny"
+    "$TEST_MAGICK" -size 64x64 xc:none -fill '#f59a42' \
+        -draw 'circle 32,32 32,8' "$RENDER_IMAGES/shiny/pikachu.png"
+
+    shiny_panel="$(
+        render PF_RENDER_WIDTH=1760 PF_RENDER_HEIGHT=460 PF_SHINY=2 \
+            "$ROOT_DIR/render-pokemon.sh" 25
+    )"
+
+    [[ "${shiny_panel##*/}" == pikachu-shiny-*.png && -s "$shiny_panel" ]] || {
+        printf '[ERROR] No se generó el panel shiny: %s\n' "$shiny_panel" >&2
+        exit 1
+    }
+
+    if render PF_SHINY=2 "$ROOT_DIR/render-pokemon.sh" --check 1 >/dev/null 2>&1; then
+        printf '[ERROR] PF_SHINY=2 aceptó un Pokémon sin sprite shiny.\n' >&2
+        exit 1
+    fi
+
+    printf '  [OK] Panel shiny\n'
 fi
 
 printf '\n==> Probando ayudas\n'

@@ -180,6 +180,15 @@ fi
 # y vuelve a renderizar (lo usa "--rerender").
 FORCE_RENDER="${PF_FORCE_RENDER:-0}"
 
+# PF_SHINY: 0 = normal, 1 = shiny si hay sprite (si no, normal),
+# 2 = shiny obligatorio (error si falta el sprite).
+# Los sprites shiny están en la subcarpeta "shiny/" de POKEMON_DIR.
+SHINY_REQUEST="${PF_SHINY:-0}"
+
+if [[ "$SHINY_REQUEST" != "1" && "$SHINY_REQUEST" != "2" ]]; then
+    SHINY_REQUEST=0
+fi
+
 REQUEST="${1:-}"
 
 case "$REQUEST" in
@@ -566,6 +575,22 @@ if [[ -z "$SELECTED_IMAGE" || ! -f "$SELECTED_IMAGE" ]]; then
     exit 1
 fi
 
+# Variante shiny: mismo nombre de archivo, en la subcarpeta "shiny/".
+IS_SHINY=false
+
+if ((SHINY_REQUEST > 0)); then
+    SHINY_IMAGE="$POKEMON_DIR/shiny/${SELECTED_IMAGE##*/}"
+
+    if [[ -f "$SHINY_IMAGE" ]]; then
+        SELECTED_IMAGE="$SHINY_IMAGE"
+        IS_SHINY=true
+    elif ((SHINY_REQUEST == 2)); then
+        pf_error "No hay sprite shiny de $NAME."
+        pf_error "Descargalo con: ./download-sprites.sh --only-shiny"
+        exit 1
+    fi
+fi
+
 if [[ "$CHECK_ONLY" == "true" ]]; then
     printf '%s\n' "$POKEMON_KEY"
     exit 0
@@ -594,12 +619,17 @@ read -r CACHE_HASH _ < <(
         "$PANEL_WIDTH" \
         "$PANEL_HEIGHT" \
         "$IMAGE_MTIME" \
-        "$POKEMON_DATA" |
+        "$POKEMON_DATA" \
+        "$IS_SHINY" |
         sha256sum
 )
 
 CACHE_HASH="${CACHE_HASH:0:16}"
 SAFE_KEY="${POKEMON_KEY//[^a-zA-Z0-9._-]/-}"
+
+if [[ "$IS_SHINY" == "true" ]]; then
+    SAFE_KEY="$SAFE_KEY-shiny"
+fi
 
 FINAL_PANEL="$PANELS_DIR/${SAFE_KEY}-${CACHE_HASH}.png"
 CURRENT_PANEL="$PANELS_DIR/${SAFE_KEY}.png"
@@ -896,6 +926,25 @@ cat > "$SVG_FILE" <<EOF
     <!-- Nombre y número -->
     <text x="$STATS_X" y="55" class="text" font-size="31" font-weight="700">$SVG_NAME</text>
     <text x="$NUMBER_X" y="55" class="muted" font-size="25">#$NUMBER</text>
+EOF
+
+if [[ "$IS_SHINY" == "true" ]]; then
+    # Después del número: "#" + dígitos a ~15 unidades por carácter.
+    SHINY_BADGE_X="$((NUMBER_X + (${#NUMBER} + 1) * 15 + 22))"
+
+    cat >> "$SVG_FILE" <<EOF
+    <text
+        x="$SHINY_BADGE_X"
+        y="54"
+        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+        font-size="22"
+        font-weight="700"
+        fill="#F5C542"
+    >✦ Shiny</text>
+EOF
+fi
+
+cat >> "$SVG_FILE" <<EOF
 
     <!-- Tipo -->
     <text x="$STATS_X" y="98" class="muted" font-size="22">Tipo</text>

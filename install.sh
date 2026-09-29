@@ -366,90 +366,63 @@ write_config() {
     local config_file="$CONFIG_DIR/config"
     local temporary_file="$CONFIG_DIR/config.tmp"
 
-    local panel_width="1580"
-    local panel_height="450"
-    local panel_rows="20"
-    local system_max_width="0"
-    local column_gap="6"
-    local show_system_info="true"
-    local show_color_palette="true"
+    # Opciones que maneja el instalador y su valor predeterminado.
+    # Las rutas (POKEMON_DIR, CACHE_DIR, INSTALL_DIR) se regeneran siempre.
+    local managed_keys=(
+        POKEMON_PANEL_WIDTH POKEMON_PANEL_HEIGHT POKEMON_PANEL_ROWS
+        POKEMON_PANEL_CACHE_MAX POKEMON_PREFETCH POKEMON_SHINY_RATE
+        SYSTEM_PANEL_MAX_WIDTH COLUMN_GAP
+        SHOW_SYSTEM_INFO SHOW_COLOR_PALETTE
+    )
+
+    declare -A defaults=(
+        [POKEMON_PANEL_WIDTH]=1580
+        [POKEMON_PANEL_HEIGHT]=450
+        [POKEMON_PANEL_ROWS]=20
+        [POKEMON_PANEL_CACHE_MAX]=60
+        [POKEMON_PREFETCH]=true
+        [POKEMON_SHINY_RATE]=20
+        [SYSTEM_PANEL_MAX_WIDTH]=0
+        [COLUMN_GAP]=6
+        [SHOW_SYSTEM_INFO]=true
+        [SHOW_COLOR_PALETTE]=true
+    )
+
+    declare -A values=()
+    local key=""
+    local custom_lines=""
+
+    for key in "${managed_keys[@]}"; do
+        values[$key]="${defaults[$key]}"
+    done
 
     if [[ -r "$config_file" ]]; then
-        # Leemos únicamente las opciones visuales conocidas.
-        # Las rutas se regeneran siempre para evitar valores antiguos.
-        panel_width="$(
-            awk -F= '
-                $1 == "POKEMON_PANEL_WIDTH" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
+        local line=""
+        local line_key=""
 
-        panel_height="$(
-            awk -F= '
-                $1 == "POKEMON_PANEL_HEIGHT" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ "$line" =~ ^([A-Z_][A-Z0-9_]*)=(.*)$ ]] || continue
 
-        panel_rows="$(
-            awk -F= '
-                $1 == "POKEMON_PANEL_ROWS" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
+            line_key="${BASH_REMATCH[1]}"
 
-        system_max_width="$(
-            awk -F= '
-                $1 == "SYSTEM_PANEL_MAX_WIDTH" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
+            case "$line_key" in
+                POKEMON_DIR|CACHE_DIR|INSTALL_DIR)
+                    ;;
 
-        column_gap="$(
-            awk -F= '
-                $1 == "COLUMN_GAP" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
-
-        show_system_info="$(
-            awk -F= '
-                $1 == "SHOW_SYSTEM_INFO" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
-
-        show_color_palette="$(
-            awk -F= '
-                $1 == "SHOW_COLOR_PALETTE" {
-                    print substr($0, index($0, "=") + 1)
-                    exit
-                }
-            ' "$config_file"
-        )"
-
-        panel_width="${panel_width:-1580}"
-        panel_height="${panel_height:-450}"
-        panel_rows="${panel_rows:-20}"
-        system_max_width="${system_max_width:-0}"
-        column_gap="${column_gap:-6}"
-        show_system_info="${show_system_info:-true}"
-        show_color_palette="${show_color_palette:-true}"
+                *)
+                    if [[ -n "${defaults[$line_key]+set}" ]]; then
+                        values[$line_key]="${BASH_REMATCH[2]}"
+                    else
+                        # Variables agregadas a mano: se conservan tal cual.
+                        custom_lines+="$line"$'\n'
+                    fi
+                    ;;
+            esac
+        done < "$config_file"
     fi
 
-    cat > "$temporary_file" <<EOF
+    {
+        cat <<EOF
 # Pokémon Fastfetch ${APP_VERSION}
 # Archivo administrado por install.sh
 
@@ -459,18 +432,30 @@ CACHE_DIR=$(printf '%q' "$CACHE_DIR")
 INSTALL_DIR=$(printf '%q' "$INSTALL_DIR")
 
 # Panel Pokémon
-POKEMON_PANEL_WIDTH=$panel_width
-POKEMON_PANEL_HEIGHT=$panel_height
-POKEMON_PANEL_ROWS=$panel_rows
+POKEMON_PANEL_WIDTH=${values[POKEMON_PANEL_WIDTH]}
+POKEMON_PANEL_HEIGHT=${values[POKEMON_PANEL_HEIGHT]}
+POKEMON_PANEL_ROWS=${values[POKEMON_PANEL_ROWS]}
+POKEMON_PANEL_CACHE_MAX=${values[POKEMON_PANEL_CACHE_MAX]}
+
+# Modo aleatorio
+# Pre-renderizar el próximo Pokémon en segundo plano.
+POKEMON_PREFETCH=${values[POKEMON_PREFETCH]}
+# Probabilidad de shiny: 1 en N (0 los desactiva).
+POKEMON_SHINY_RATE=${values[POKEMON_SHINY_RATE]}
 
 # Panel del sistema
-SYSTEM_PANEL_MAX_WIDTH=$system_max_width
-COLUMN_GAP=$column_gap
+SYSTEM_PANEL_MAX_WIDTH=${values[SYSTEM_PANEL_MAX_WIDTH]}
+COLUMN_GAP=${values[COLUMN_GAP]}
 
 # Opciones visuales
-SHOW_SYSTEM_INFO=$show_system_info
-SHOW_COLOR_PALETTE=$show_color_palette
+SHOW_SYSTEM_INFO=${values[SHOW_SYSTEM_INFO]}
+SHOW_COLOR_PALETTE=${values[SHOW_COLOR_PALETTE]}
 EOF
+
+        if [[ -n "$custom_lines" ]]; then
+            printf '\n# Valores personalizados\n%s' "$custom_lines"
+        fi
+    } > "$temporary_file"
 
     chmod 0600 "$temporary_file"
     mv -f "$temporary_file" "$config_file"

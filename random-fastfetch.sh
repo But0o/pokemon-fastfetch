@@ -99,6 +99,20 @@ SHOW_SYSTEM_INFO="${SHOW_SYSTEM_INFO:-true}"
 
 # Pre-renderizar en segundo plano el próximo Pokémon aleatorio.
 POKEMON_PREFETCH="${POKEMON_PREFETCH:-true}"
+
+# Probabilidad de shiny en modo aleatorio: 1 en POKEMON_SHINY_RATE.
+# 0 desactiva los shiny aleatorios.
+POKEMON_SHINY_RATE="${POKEMON_SHINY_RATE:-20}"
+
+if ! [[ "$POKEMON_SHINY_RATE" =~ ^[0-9]+$ ]]; then
+    POKEMON_SHINY_RATE=20
+fi
+
+# Carpeta de sprites (los shiny están en su subcarpeta "shiny/").
+POKEMON_DIR="${POKEMON_DIR:-$HOME/.local/share/pokimg/images}"
+
+# Valor especial de fixed-pokemon para el modo "solo shiny al azar".
+SHINY_MODE_MARKER="@shiny-random"
 SHOW_COLOR_PALETTE="${SHOW_COLOR_PALETTE:-true}"
 
 # ────────────────────────────────────────────────────────────────
@@ -145,6 +159,30 @@ Uso:
 
   random-fastfetch.sh --rerender charizard
       Borra el panel cacheado y vuelve a generarlo.
+
+  random-fastfetch.sh --set pikachu
+      Fija un Pokémon para todas las terminales nuevas.
+
+  random-fastfetch.sh --random-mode
+      Vuelve al modo aleatorio (con probabilidad de shiny).
+
+Shiny:
+
+  random-fastfetch.sh --shiny
+      Un Pokémon shiny al azar, solo esta vez.
+
+  random-fastfetch.sh --shiny pikachu
+      Un Pokémon shiny puntual, solo esta vez.
+
+  random-fastfetch.sh --set-shiny pikachu
+      Fija un Pokémon shiny para todas las terminales nuevas.
+
+  random-fastfetch.sh --shiny-mode
+      Cada terminal muestra un Pokémon shiny al azar.
+
+  En modo aleatorio, cada Pokémon tiene 1 en POKEMON_SHINY_RATE (20 por
+  defecto) de probabilidad de salir shiny. Los sprites shiny se descargan
+  con download-sprites.sh.
 
   random-fastfetch.sh --help
       Muestra esta ayuda.
@@ -349,6 +387,30 @@ pf_require_nonempty_file "$POKEDEX_FILE" "La caché Pokédex"
 # Se regenera solo cuando la Pokédex es más nueva que el índice.
 POKEDEX_INDEX_FILE="$CACHE_ROOT/pokedex-keys.txt"
 
+# Tira el dado del shiny: devuelve éxito 1 de cada POKEMON_SHINY_RATE veces.
+roll_shiny() {
+    ((POKEMON_SHINY_RATE > 0)) &&
+        (( ${SRANDOM:-$RANDOM} % POKEMON_SHINY_RATE == 0 ))
+}
+
+require_shiny_sprites() {
+    local sprites=()
+
+    if [[ -d "$POKEMON_DIR/shiny" ]]; then
+        sprites=("$POKEMON_DIR/shiny/"*.png)
+    fi
+
+    if [[ ! -e "${sprites[0]:-}" ]]; then
+        pf_error "No hay sprites shiny en: $POKEMON_DIR/shiny"
+        pf_die "Descargalos desde el repositorio con: ./download-sprites.sh --only-shiny"
+    fi
+}
+
+# Al cambiar de modo, el Pokémon pre-renderizado ya no corresponde.
+discard_prefetched() {
+    rm -f "$CACHE_ROOT"/next-random-* 2>/dev/null || true
+}
+
 pick_random_pokemon() {
     local keys=()
 
@@ -384,6 +446,12 @@ REQUEST=""
 FORCE_RERENDER=false
 RANDOM_SELECTION=false
 
+# 0 = normal, 1 = shiny si hay sprite, 2 = shiny obligatorio (ver renderer).
+SHINY_LEVEL=0
+
+# Modo "solo shiny al azar" (--shiny-mode).
+SHINY_MODE=false
+
 case "${1:-}" in
     --set)
         FIXED_REQUEST="${2:-}"
@@ -406,17 +474,79 @@ case "${1:-}" in
         fi
 
         printf '%s\n' "$FIXED_KEY" > "$FIXED_POKEMON_FILE"
+        discard_prefetched
 
         echo "Pokémon fijo configurado: $FIXED_KEY"
         echo "Se mostrará al abrir nuevas terminales."
         exit 0
         ;;
 
+    --set-shiny)
+        FIXED_REQUEST="${2:-}"
+
+        if [[ -z "$FIXED_REQUEST" ]]; then
+            pf_error "Tenés que indicar un Pokémon por nombre o número."
+            echo
+            echo "Ejemplos:"
+            echo "  fastfetch --set-shiny pikachu"
+            echo "  fastfetch --set-shiny 25"
+            exit 1
+        fi
+
+        FIXED_KEY="$(
+            PF_SHINY=2 "$RENDER_SCRIPT" --check "$FIXED_REQUEST" 2>/dev/null || true
+        )"
+
+        if [[ -z "$FIXED_KEY" ]]; then
+            pf_die "No se encontró el Pokémon o su sprite shiny: $FIXED_REQUEST"
+        fi
+
+        printf '%s shiny\n' "$FIXED_KEY" > "$FIXED_POKEMON_FILE"
+        discard_prefetched
+
+        echo "Pokémon shiny fijo configurado: $FIXED_KEY ✦"
+        echo "Se mostrará al abrir nuevas terminales."
+        exit 0
+        ;;
+
+    --shiny-mode)
+        require_shiny_sprites
+        printf '%s\n' "$SHINY_MODE_MARKER" > "$FIXED_POKEMON_FILE"
+        discard_prefetched
+
+        echo "Modo shiny activado ✦"
+        echo "Cada terminal mostrará un Pokémon shiny al azar."
+        echo "Para volver al modo normal: fastfetch --random-mode"
+        exit 0
+        ;;
+
+    --shiny)
+        require_shiny_sprites
+
+        if [[ -n "${2:-}" ]]; then
+            # Un Pokémon shiny puntual.
+            REQUEST="$2"
+            SHINY_LEVEL=2
+        else
+            # Un shiny al azar, solo esta vez.
+            RANDOM_SELECTION=true
+            SHINY_MODE=true
+            SHINY_LEVEL=1
+            REQUEST="$(pick_random_pokemon || true)"
+        fi
+        ;;
+
     --random-mode)
         rm -f "$FIXED_POKEMON_FILE"
+        discard_prefetched
 
         echo "Modo aleatorio activado."
         echo "Se seleccionará un Pokémon diferente en cada terminal."
+
+        if ((POKEMON_SHINY_RATE > 0)); then
+            echo "Probabilidad de shiny: 1 en $POKEMON_SHINY_RATE."
+        fi
+
         exit 0
         ;;
 
@@ -437,14 +567,41 @@ case "${1:-}" in
         # Selección aleatoria solo para esta ejecución.
         RANDOM_SELECTION=true
         REQUEST="$(pick_random_pokemon || true)"
+
+        if roll_shiny; then
+            SHINY_LEVEL=1
+        fi
         ;;
 
     "")
+        FIXED_VALUE=""
+        FIXED_FLAG=""
+
         if [[ -s "$FIXED_POKEMON_FILE" ]]; then
-            read -r REQUEST < "$FIXED_POKEMON_FILE" || true
+            read -r FIXED_VALUE FIXED_FLAG < "$FIXED_POKEMON_FILE" || true
+        fi
+
+        if [[ "$FIXED_VALUE" == "$SHINY_MODE_MARKER" ]]; then
+            # --shiny-mode: siempre shiny, Pokémon al azar.
+            RANDOM_SELECTION=true
+            SHINY_MODE=true
+            SHINY_LEVEL=1
+            REQUEST="$(pick_random_pokemon || true)"
+        elif [[ -n "$FIXED_VALUE" ]]; then
+            # --set / --set-shiny
+            REQUEST="$FIXED_VALUE"
+
+            if [[ "$FIXED_FLAG" == "shiny" ]]; then
+                SHINY_LEVEL=1
+            fi
         else
+            # Modo aleatorio con probabilidad de shiny.
             RANDOM_SELECTION=true
             REQUEST="$(pick_random_pokemon || true)"
+
+            if roll_shiny; then
+                SHINY_LEVEL=1
+            fi
         fi
         ;;
 
@@ -552,13 +709,21 @@ if [[ "$RANDOM_SELECTION" == "true" && -s "$NEXT_RANDOM_FILE" ]]; then
 
     # mv es atómico: si se abren dos terminales a la vez, solo una
     # se queda con el Pokémon pre-renderizado.
+    PREFETCHED_SHINY=0
+
     if mv -f "$NEXT_RANDOM_FILE" "$CLAIMED_FILE" 2>/dev/null; then
-        read -r PREFETCHED_REQUEST < "$CLAIMED_FILE" || true
+        read -r PREFETCHED_REQUEST PREFETCHED_SHINY < "$CLAIMED_FILE" || true
         rm -f "$CLAIMED_FILE"
+    fi
+
+    # En modo shiny no sirve un pre-render normal (quedó del modo anterior).
+    if [[ "$SHINY_MODE" == "true" && "${PREFETCHED_SHINY:-0}" != "1" ]]; then
+        PREFETCHED_REQUEST=""
     fi
 
     if [[ -n "$PREFETCHED_REQUEST" ]]; then
         REQUEST="$PREFETCHED_REQUEST"
+        SHINY_LEVEL="${PREFETCHED_SHINY:-0}"
     fi
 fi
 
@@ -569,10 +734,17 @@ start_random_prefetch() {
         return 0
     fi
 
+    local next_shiny=0
+
     next_request="$(pick_random_pokemon || true)"
 
     if [[ -z "$next_request" || "$next_request" == "$REQUEST" ]]; then
         return 0
+    fi
+
+    # El dado del shiny se tira ahora, así el panel queda pre-renderizado.
+    if [[ "$SHINY_MODE" == "true" ]] || roll_shiny; then
+        next_shiny=1
     fi
 
     (
@@ -586,8 +758,9 @@ start_random_prefetch() {
 
         if PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
             PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
+            PF_SHINY="$next_shiny" \
             "${low_priority[@]}" "$RENDER_SCRIPT" "$next_request"; then
-            printf '%s\n' "$next_request" > "$NEXT_RANDOM_FILE.tmp-$BASHPID" &&
+            printf '%s %s\n' "$next_request" "$next_shiny" > "$NEXT_RANDOM_FILE.tmp-$BASHPID" &&
                 mv -f "$NEXT_RANDOM_FILE.tmp-$BASHPID" "$NEXT_RANDOM_FILE"
         fi
     ) < /dev/null > /dev/null 2>&1 &
@@ -620,6 +793,7 @@ fi
 PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
     PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
     PF_FORCE_RENDER="$FORCE_RENDER_FLAG" \
+    PF_SHINY="$SHINY_LEVEL" \
     "$RENDER_SCRIPT" "$REQUEST" > "$RENDER_OUTPUT_FILE" &
 
 RENDER_PID=$!

@@ -69,6 +69,7 @@ required_files=(
     "$ROOT_DIR/README.md"
     "$ROOT_DIR/CHANGELOG.md"
     "$ROOT_DIR/config/pokedex.json"
+    "$ROOT_DIR/config/megas.json"
     "$ROOT_DIR/add-missing-pokemon.sh"
     "$ROOT_DIR/download-sprites.sh"
     "$ROOT_DIR/lib/common.sh"
@@ -124,6 +125,25 @@ if [[ "$unique_id_count" -ne "$pokemon_count" ]]; then
 fi
 
 printf '  [OK] %s Pokémon con IDs únicos\n' "$pokemon_count"
+
+# Megaevoluciones: cada una apunta a una forma base de la Pokédex, tiene
+# su sprite en mega/ y las seis estadísticas.
+if ! jq -e --slurpfile pokedex "$ROOT_DIR/config/pokedex.json" '
+    length >= 48
+    and all(to_entries[];
+        .value.base as $base
+        | .value.mega == true
+        and ($pokedex[0] | has($base))
+        and (.value.image == "mega/\(.key).png")
+        and ((.value.stats // {}) | length == 6)
+        and ((.value.types // []) | length >= 1)
+    )
+' "$ROOT_DIR/config/megas.json" >/dev/null; then
+    printf '[ERROR] config/megas.json tiene entradas inválidas.\n' >&2
+    exit 1
+fi
+
+printf '  [OK] %s megaevoluciones válidas\n' "$(jq 'length' "$ROOT_DIR/config/megas.json")"
 
 printf '\n==> Probando biblioteca común\n'
 
@@ -289,6 +309,37 @@ else
     fi
 
     printf '  [OK] Panel shiny\n'
+
+    # Mega: datos de megas.json y sprites en mega/ y mega/shiny/.
+    cp "$ROOT_DIR/config/megas.json" "$RENDER_HOME/.cache/pokemon-fastfetch/"
+    mkdir -p "$RENDER_IMAGES/mega/shiny"
+    "$TEST_MAGICK" -size 64x64 xc:none -fill '#7b5cc4' \
+        -draw 'circle 32,32 32,8' "$RENDER_IMAGES/gengar.png"
+    cp "$RENDER_IMAGES/gengar.png" "$RENDER_IMAGES/mega/gengar-mega.png"
+    cp "$RENDER_IMAGES/gengar.png" "$RENDER_IMAGES/mega/shiny/gengar-mega.png"
+
+    for shiny_level in 0 2; do
+        mega_panel="$(
+            render PF_RENDER_WIDTH=1760 PF_RENDER_HEIGHT=460 PF_SHINY="$shiny_level" \
+                "$ROOT_DIR/render-pokemon.sh" gengar-mega
+        )"
+
+        expected_prefix="gengar-mega-"
+        [[ "$shiny_level" == "2" ]] && expected_prefix="gengar-mega-shiny-"
+
+        [[ "${mega_panel##*/}" == "$expected_prefix"* && -s "$mega_panel" ]] || {
+            printf '[ERROR] No se generó el panel mega: %s\n' "$mega_panel" >&2
+            exit 1
+        }
+    done
+
+    # Por número se obtiene la forma base, no la mega.
+    [[ "$(render "$ROOT_DIR/render-pokemon.sh" --check 94)" == "gengar" ]] || {
+        printf '[ERROR] --check 94 no devolvió la forma base.\n' >&2
+        exit 1
+    }
+
+    printf '  [OK] Panel mega y mega shiny\n'
 fi
 
 printf '\n==> Probando ayudas\n'

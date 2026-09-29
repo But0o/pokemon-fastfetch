@@ -1,0 +1,1625 @@
+{
+  "venusaur-mega": {
+    "id": 3,
+    "number": "003",
+    "name": "Mega Venusaur",
+    "api_name": "venusaur-mega",
+    "image": "mega/venusaur-mega.png",
+    "types": [
+      "grass",
+      "poison"
+    ],
+    "abilities": [
+      "thick-fat"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 2.4,
+    "weight_kg": 155.5,
+    "color": "green",
+    "habitat": "grassland",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 100,
+      "defense": 123,
+      "special_attack": 122,
+      "special_defense": 120,
+      "speed": 80
+    },
+    "base_experience": 281,
+    "mega": true,
+    "base": "venusaur"
+  },
+  "charizard-mega-x": {
+    "id": 6,
+    "number": "006",
+    "name": "Mega Charizard X",
+    "api_name": "charizard-mega-x",
+    "image": "mega/charizard-mega-x.png",
+    "types": [
+      "fire",
+      "dragon"
+    ],
+    "abilities": [
+      "tough-claws"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.7,
+    "weight_kg": 110.5,
+    "color": "red",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 78,
+      "attack": 130,
+      "defense": 111,
+      "special_attack": 130,
+      "special_defense": 85,
+      "speed": 100
+    },
+    "base_experience": 285,
+    "mega": true,
+    "base": "charizard"
+  },
+  "charizard-mega-y": {
+    "id": 6,
+    "number": "006",
+    "name": "Mega Charizard Y",
+    "api_name": "charizard-mega-y",
+    "image": "mega/charizard-mega-y.png",
+    "types": [
+      "fire",
+      "flying"
+    ],
+    "abilities": [
+      "drought"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.7,
+    "weight_kg": 100.5,
+    "color": "red",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 78,
+      "attack": 104,
+      "defense": 78,
+      "special_attack": 159,
+      "special_defense": 115,
+      "speed": 100
+    },
+    "base_experience": 285,
+    "mega": true,
+    "base": "charizard"
+  },
+  "blastoise-mega": {
+    "id": 9,
+    "number": "009",
+    "name": "Mega Blastoise",
+    "api_name": "blastoise-mega",
+    "image": "mega/blastoise-mega.png",
+    "types": [
+      "water"
+    ],
+    "abilities": [
+      "mega-launcher"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.6,
+    "weight_kg": 101.1,
+    "color": "blue",
+    "habitat": "waters-edge",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 79,
+      "attack": 103,
+      "defense": 120,
+      "special_attack": 135,
+      "special_defense": 115,
+      "speed": 78
+    },
+    "base_experience": 284,
+    "mega": true,
+    "base": "blastoise"
+  },
+  "beedrill-mega": {
+    "id": 15,
+    "number": "015",
+    "name": "Mega Beedrill",
+    "api_name": "beedrill-mega",
+    "image": "mega/beedrill-mega.png",
+    "types": [
+      "bug",
+      "poison"
+    ],
+    "abilities": [
+      "adaptability"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.4,
+    "weight_kg": 40.5,
+    "color": "yellow",
+    "habitat": "forest",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 65,
+      "attack": 150,
+      "defense": 40,
+      "special_attack": 15,
+      "special_defense": 80,
+      "speed": 145
+    },
+    "base_experience": 223,
+    "mega": true,
+    "base": "beedrill"
+  },
+  "pidgeot-mega": {
+    "id": 18,
+    "number": "018",
+    "name": "Mega Pidgeot",
+    "api_name": "pidgeot-mega",
+    "image": "mega/pidgeot-mega.png",
+    "types": [
+      "normal",
+      "flying"
+    ],
+    "abilities": [
+      "no-guard"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 2.2,
+    "weight_kg": 50.5,
+    "color": "brown",
+    "habitat": "forest",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 83,
+      "attack": 80,
+      "defense": 80,
+      "special_attack": 135,
+      "special_defense": 80,
+      "speed": 121
+    },
+    "base_experience": 261,
+    "mega": true,
+    "base": "pidgeot"
+  },
+  "alakazam-mega": {
+    "id": 65,
+    "number": "065",
+    "name": "Mega Alakazam",
+    "api_name": "alakazam-mega",
+    "image": "mega/alakazam-mega.png",
+    "types": [
+      "psychic"
+    ],
+    "abilities": [
+      "trace"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.2,
+    "weight_kg": 48,
+    "color": "brown",
+    "habitat": "urban",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 55,
+      "attack": 50,
+      "defense": 65,
+      "special_attack": 175,
+      "special_defense": 105,
+      "speed": 150
+    },
+    "base_experience": 270,
+    "mega": true,
+    "base": "alakazam"
+  },
+  "slowbro-mega": {
+    "id": 80,
+    "number": "080",
+    "name": "Mega Slowbro",
+    "api_name": "slowbro-mega",
+    "image": "mega/slowbro-mega.png",
+    "types": [
+      "water",
+      "psychic"
+    ],
+    "abilities": [
+      "shell-armor"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 2,
+    "weight_kg": 120,
+    "color": "pink",
+    "habitat": "waters-edge",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 95,
+      "attack": 75,
+      "defense": 180,
+      "special_attack": 130,
+      "special_defense": 80,
+      "speed": 30
+    },
+    "base_experience": 207,
+    "mega": true,
+    "base": "slowbro"
+  },
+  "gengar-mega": {
+    "id": 94,
+    "number": "094",
+    "name": "Mega Gengar",
+    "api_name": "gengar-mega",
+    "image": "mega/gengar-mega.png",
+    "types": [
+      "ghost",
+      "poison"
+    ],
+    "abilities": [
+      "shadow-tag"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.4,
+    "weight_kg": 40.5,
+    "color": "purple",
+    "habitat": "cave",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 60,
+      "attack": 65,
+      "defense": 80,
+      "special_attack": 170,
+      "special_defense": 95,
+      "speed": 130
+    },
+    "base_experience": 270,
+    "mega": true,
+    "base": "gengar"
+  },
+  "kangaskhan-mega": {
+    "id": 115,
+    "number": "115",
+    "name": "Mega Kangaskhan",
+    "api_name": "kangaskhan-mega",
+    "image": "mega/kangaskhan-mega.png",
+    "types": [
+      "normal"
+    ],
+    "abilities": [
+      "parental-bond"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 2.2,
+    "weight_kg": 100,
+    "color": "brown",
+    "habitat": "grassland",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 105,
+      "attack": 125,
+      "defense": 100,
+      "special_attack": 60,
+      "special_defense": 100,
+      "speed": 100
+    },
+    "base_experience": 207,
+    "mega": true,
+    "base": "kangaskhan"
+  },
+  "pinsir-mega": {
+    "id": 127,
+    "number": "127",
+    "name": "Mega Pinsir",
+    "api_name": "pinsir-mega",
+    "image": "mega/pinsir-mega.png",
+    "types": [
+      "bug",
+      "flying"
+    ],
+    "abilities": [
+      "aerilate"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.7,
+    "weight_kg": 59,
+    "color": "brown",
+    "habitat": "forest",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 65,
+      "attack": 155,
+      "defense": 120,
+      "special_attack": 65,
+      "special_defense": 90,
+      "speed": 105
+    },
+    "base_experience": 210,
+    "mega": true,
+    "base": "pinsir"
+  },
+  "gyarados-mega": {
+    "id": 130,
+    "number": "130",
+    "name": "Mega Gyarados",
+    "api_name": "gyarados-mega",
+    "image": "mega/gyarados-mega.png",
+    "types": [
+      "water",
+      "dark"
+    ],
+    "abilities": [
+      "mold-breaker"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 6.5,
+    "weight_kg": 305,
+    "color": "blue",
+    "habitat": "waters-edge",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 95,
+      "attack": 155,
+      "defense": 109,
+      "special_attack": 70,
+      "special_defense": 130,
+      "speed": 81
+    },
+    "base_experience": 224,
+    "mega": true,
+    "base": "gyarados"
+  },
+  "aerodactyl-mega": {
+    "id": 142,
+    "number": "142",
+    "name": "Mega Aerodactyl",
+    "api_name": "aerodactyl-mega",
+    "image": "mega/aerodactyl-mega.png",
+    "types": [
+      "rock",
+      "flying"
+    ],
+    "abilities": [
+      "tough-claws"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 2.1,
+    "weight_kg": 79,
+    "color": "purple",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 135,
+      "defense": 85,
+      "special_attack": 70,
+      "special_defense": 95,
+      "speed": 150
+    },
+    "base_experience": 215,
+    "mega": true,
+    "base": "aerodactyl"
+  },
+  "mewtwo-mega-x": {
+    "id": 150,
+    "number": "150",
+    "name": "Mega Mewtwo X",
+    "api_name": "mewtwo-mega-x",
+    "image": "mega/mewtwo-mega-x.png",
+    "types": [
+      "psychic",
+      "fighting"
+    ],
+    "abilities": [
+      "steadfast"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 2.3,
+    "weight_kg": 127,
+    "color": "purple",
+    "habitat": "rare",
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 106,
+      "attack": 190,
+      "defense": 100,
+      "special_attack": 154,
+      "special_defense": 100,
+      "speed": 130
+    },
+    "base_experience": 351,
+    "mega": true,
+    "base": "mewtwo"
+  },
+  "mewtwo-mega-y": {
+    "id": 150,
+    "number": "150",
+    "name": "Mega Mewtwo Y",
+    "api_name": "mewtwo-mega-y",
+    "image": "mega/mewtwo-mega-y.png",
+    "types": [
+      "psychic"
+    ],
+    "abilities": [
+      "insomnia"
+    ],
+    "region": "Kanto",
+    "generation": 1,
+    "height_m": 1.5,
+    "weight_kg": 33,
+    "color": "purple",
+    "habitat": "rare",
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 106,
+      "attack": 150,
+      "defense": 70,
+      "special_attack": 194,
+      "special_defense": 120,
+      "speed": 140
+    },
+    "base_experience": 351,
+    "mega": true,
+    "base": "mewtwo"
+  },
+  "ampharos-mega": {
+    "id": 181,
+    "number": "181",
+    "name": "Mega Ampharos",
+    "api_name": "ampharos-mega",
+    "image": "mega/ampharos-mega.png",
+    "types": [
+      "electric",
+      "dragon"
+    ],
+    "abilities": [
+      "mold-breaker"
+    ],
+    "region": "Johto",
+    "generation": 2,
+    "height_m": 1.4,
+    "weight_kg": 61.5,
+    "color": "yellow",
+    "habitat": "grassland",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 90,
+      "attack": 95,
+      "defense": 105,
+      "special_attack": 165,
+      "special_defense": 110,
+      "speed": 45
+    },
+    "base_experience": 275,
+    "mega": true,
+    "base": "ampharos"
+  },
+  "steelix-mega": {
+    "id": 208,
+    "number": "208",
+    "name": "Mega Steelix",
+    "api_name": "steelix-mega",
+    "image": "mega/steelix-mega.png",
+    "types": [
+      "steel",
+      "ground"
+    ],
+    "abilities": [
+      "sand-force"
+    ],
+    "region": "Johto",
+    "generation": 2,
+    "height_m": 10.5,
+    "weight_kg": 740,
+    "color": "gray",
+    "habitat": "cave",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 75,
+      "attack": 125,
+      "defense": 230,
+      "special_attack": 55,
+      "special_defense": 95,
+      "speed": 30
+    },
+    "base_experience": 214,
+    "mega": true,
+    "base": "steelix"
+  },
+  "scizor-mega": {
+    "id": 212,
+    "number": "212",
+    "name": "Mega Scizor",
+    "api_name": "scizor-mega",
+    "image": "mega/scizor-mega.png",
+    "types": [
+      "bug",
+      "steel"
+    ],
+    "abilities": [
+      "technician"
+    ],
+    "region": "Johto",
+    "generation": 2,
+    "height_m": 2,
+    "weight_kg": 125,
+    "color": "red",
+    "habitat": "grassland",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 150,
+      "defense": 140,
+      "special_attack": 65,
+      "special_defense": 100,
+      "speed": 75
+    },
+    "base_experience": 210,
+    "mega": true,
+    "base": "scizor"
+  },
+  "heracross-mega": {
+    "id": 214,
+    "number": "214",
+    "name": "Mega Heracross",
+    "api_name": "heracross-mega",
+    "image": "mega/heracross-mega.png",
+    "types": [
+      "bug",
+      "fighting"
+    ],
+    "abilities": [
+      "skill-link"
+    ],
+    "region": "Johto",
+    "generation": 2,
+    "height_m": 1.7,
+    "weight_kg": 62.5,
+    "color": "blue",
+    "habitat": "forest",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 185,
+      "defense": 115,
+      "special_attack": 40,
+      "special_defense": 105,
+      "speed": 75
+    },
+    "base_experience": 210,
+    "mega": true,
+    "base": "heracross"
+  },
+  "houndoom-mega": {
+    "id": 229,
+    "number": "229",
+    "name": "Mega Houndoom",
+    "api_name": "houndoom-mega",
+    "image": "mega/houndoom-mega.png",
+    "types": [
+      "dark",
+      "fire"
+    ],
+    "abilities": [
+      "solar-power"
+    ],
+    "region": "Johto",
+    "generation": 2,
+    "height_m": 1.9,
+    "weight_kg": 49.5,
+    "color": "black",
+    "habitat": "rough-terrain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 75,
+      "attack": 90,
+      "defense": 90,
+      "special_attack": 140,
+      "special_defense": 90,
+      "speed": 115
+    },
+    "base_experience": 210,
+    "mega": true,
+    "base": "houndoom"
+  },
+  "tyranitar-mega": {
+    "id": 248,
+    "number": "248",
+    "name": "Mega Tyranitar",
+    "api_name": "tyranitar-mega",
+    "image": "mega/tyranitar-mega.png",
+    "types": [
+      "rock",
+      "dark"
+    ],
+    "abilities": [
+      "sand-stream"
+    ],
+    "region": "Johto",
+    "generation": 2,
+    "height_m": 2.5,
+    "weight_kg": 255,
+    "color": "green",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 100,
+      "attack": 164,
+      "defense": 150,
+      "special_attack": 95,
+      "special_defense": 120,
+      "speed": 71
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "tyranitar"
+  },
+  "sceptile-mega": {
+    "id": 254,
+    "number": "254",
+    "name": "Mega Sceptile",
+    "api_name": "sceptile-mega",
+    "image": "mega/sceptile-mega.png",
+    "types": [
+      "grass",
+      "dragon"
+    ],
+    "abilities": [
+      "lightning-rod"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.9,
+    "weight_kg": 55.2,
+    "color": "green",
+    "habitat": "forest",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 110,
+      "defense": 75,
+      "special_attack": 145,
+      "special_defense": 85,
+      "speed": 145
+    },
+    "base_experience": 284,
+    "mega": true,
+    "base": "sceptile"
+  },
+  "blaziken-mega": {
+    "id": 257,
+    "number": "257",
+    "name": "Mega Blaziken",
+    "api_name": "blaziken-mega",
+    "image": "mega/blaziken-mega.png",
+    "types": [
+      "fire",
+      "fighting"
+    ],
+    "abilities": [
+      "speed-boost"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.9,
+    "weight_kg": 52,
+    "color": "red",
+    "habitat": "grassland",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 160,
+      "defense": 80,
+      "special_attack": 130,
+      "special_defense": 80,
+      "speed": 100
+    },
+    "base_experience": 284,
+    "mega": true,
+    "base": "blaziken"
+  },
+  "swampert-mega": {
+    "id": 260,
+    "number": "260",
+    "name": "Mega Swampert",
+    "api_name": "swampert-mega",
+    "image": "mega/swampert-mega.png",
+    "types": [
+      "water",
+      "ground"
+    ],
+    "abilities": [
+      "swift-swim"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.9,
+    "weight_kg": 102,
+    "color": "blue",
+    "habitat": "waters-edge",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 100,
+      "attack": 150,
+      "defense": 110,
+      "special_attack": 95,
+      "special_defense": 110,
+      "speed": 70
+    },
+    "base_experience": 286,
+    "mega": true,
+    "base": "swampert"
+  },
+  "gardevoir-mega": {
+    "id": 282,
+    "number": "282",
+    "name": "Mega Gardevoir",
+    "api_name": "gardevoir-mega",
+    "image": "mega/gardevoir-mega.png",
+    "types": [
+      "psychic",
+      "fairy"
+    ],
+    "abilities": [
+      "pixilate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.6,
+    "weight_kg": 48.4,
+    "color": "white",
+    "habitat": "urban",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 68,
+      "attack": 85,
+      "defense": 65,
+      "special_attack": 165,
+      "special_defense": 135,
+      "speed": 100
+    },
+    "base_experience": 278,
+    "mega": true,
+    "base": "gardevoir"
+  },
+  "sableye-mega": {
+    "id": 302,
+    "number": "302",
+    "name": "Mega Sableye",
+    "api_name": "sableye-mega",
+    "image": "mega/sableye-mega.png",
+    "types": [
+      "dark",
+      "ghost"
+    ],
+    "abilities": [
+      "magic-bounce"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 0.5,
+    "weight_kg": 161,
+    "color": "purple",
+    "habitat": "cave",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 50,
+      "attack": 85,
+      "defense": 125,
+      "special_attack": 85,
+      "special_defense": 115,
+      "speed": 20
+    },
+    "base_experience": 168,
+    "mega": true,
+    "base": "sableye"
+  },
+  "mawile-mega": {
+    "id": 303,
+    "number": "303",
+    "name": "Mega Mawile",
+    "api_name": "mawile-mega",
+    "image": "mega/mawile-mega.png",
+    "types": [
+      "steel",
+      "fairy"
+    ],
+    "abilities": [
+      "huge-power"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1,
+    "weight_kg": 23.5,
+    "color": "black",
+    "habitat": "cave",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 50,
+      "attack": 105,
+      "defense": 125,
+      "special_attack": 55,
+      "special_defense": 95,
+      "speed": 50
+    },
+    "base_experience": 168,
+    "mega": true,
+    "base": "mawile"
+  },
+  "aggron-mega": {
+    "id": 306,
+    "number": "306",
+    "name": "Mega Aggron",
+    "api_name": "aggron-mega",
+    "image": "mega/aggron-mega.png",
+    "types": [
+      "steel"
+    ],
+    "abilities": [
+      "filter"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 2.2,
+    "weight_kg": 395,
+    "color": "gray",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 140,
+      "defense": 230,
+      "special_attack": 60,
+      "special_defense": 80,
+      "speed": 50
+    },
+    "base_experience": 284,
+    "mega": true,
+    "base": "aggron"
+  },
+  "medicham-mega": {
+    "id": 308,
+    "number": "308",
+    "name": "Mega Medicham",
+    "api_name": "medicham-mega",
+    "image": "mega/medicham-mega.png",
+    "types": [
+      "fighting",
+      "psychic"
+    ],
+    "abilities": [
+      "pure-power"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.3,
+    "weight_kg": 31.5,
+    "color": "red",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 60,
+      "attack": 100,
+      "defense": 85,
+      "special_attack": 80,
+      "special_defense": 85,
+      "speed": 100
+    },
+    "base_experience": 179,
+    "mega": true,
+    "base": "medicham"
+  },
+  "manectric-mega": {
+    "id": 310,
+    "number": "310",
+    "name": "Mega Manectric",
+    "api_name": "manectric-mega",
+    "image": "mega/manectric-mega.png",
+    "types": [
+      "electric"
+    ],
+    "abilities": [
+      "intimidate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.8,
+    "weight_kg": 44,
+    "color": "yellow",
+    "habitat": "grassland",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 75,
+      "defense": 80,
+      "special_attack": 135,
+      "special_defense": 80,
+      "speed": 135
+    },
+    "base_experience": 201,
+    "mega": true,
+    "base": "manectric"
+  },
+  "sharpedo-mega": {
+    "id": 319,
+    "number": "319",
+    "name": "Mega Sharpedo",
+    "api_name": "sharpedo-mega",
+    "image": "mega/sharpedo-mega.png",
+    "types": [
+      "water",
+      "dark"
+    ],
+    "abilities": [
+      "strong-jaw"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 2.5,
+    "weight_kg": 130.3,
+    "color": "blue",
+    "habitat": "sea",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 140,
+      "defense": 70,
+      "special_attack": 110,
+      "special_defense": 65,
+      "speed": 105
+    },
+    "base_experience": 196,
+    "mega": true,
+    "base": "sharpedo"
+  },
+  "camerupt-mega": {
+    "id": 323,
+    "number": "323",
+    "name": "Mega Camerupt",
+    "api_name": "camerupt-mega",
+    "image": "mega/camerupt-mega.png",
+    "types": [
+      "fire",
+      "ground"
+    ],
+    "abilities": [
+      "sheer-force"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 2.5,
+    "weight_kg": 320.5,
+    "color": "red",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 120,
+      "defense": 100,
+      "special_attack": 145,
+      "special_defense": 105,
+      "speed": 20
+    },
+    "base_experience": 196,
+    "mega": true,
+    "base": "camerupt"
+  },
+  "altaria-mega": {
+    "id": 334,
+    "number": "334",
+    "name": "Mega Altaria",
+    "api_name": "altaria-mega",
+    "image": "mega/altaria-mega.png",
+    "types": [
+      "dragon",
+      "fairy"
+    ],
+    "abilities": [
+      "pixilate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.5,
+    "weight_kg": 20.6,
+    "color": "blue",
+    "habitat": "forest",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 75,
+      "attack": 110,
+      "defense": 110,
+      "special_attack": 110,
+      "special_defense": 105,
+      "speed": 80
+    },
+    "base_experience": 207,
+    "mega": true,
+    "base": "altaria"
+  },
+  "banette-mega": {
+    "id": 354,
+    "number": "354",
+    "name": "Mega Banette",
+    "api_name": "banette-mega",
+    "image": "mega/banette-mega.png",
+    "types": [
+      "ghost"
+    ],
+    "abilities": [
+      "prankster"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.2,
+    "weight_kg": 13,
+    "color": "black",
+    "habitat": "urban",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 64,
+      "attack": 165,
+      "defense": 75,
+      "special_attack": 93,
+      "special_defense": 83,
+      "speed": 75
+    },
+    "base_experience": 194,
+    "mega": true,
+    "base": "banette"
+  },
+  "absol-mega": {
+    "id": 359,
+    "number": "359",
+    "name": "Mega Absol",
+    "api_name": "absol-mega",
+    "image": "mega/absol-mega.png",
+    "types": [
+      "dark"
+    ],
+    "abilities": [
+      "magic-bounce"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.2,
+    "weight_kg": 49,
+    "color": "white",
+    "habitat": "mountain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 65,
+      "attack": 150,
+      "defense": 60,
+      "special_attack": 115,
+      "special_defense": 60,
+      "speed": 115
+    },
+    "base_experience": 198,
+    "mega": true,
+    "base": "absol"
+  },
+  "glalie-mega": {
+    "id": 362,
+    "number": "362",
+    "name": "Mega Glalie",
+    "api_name": "glalie-mega",
+    "image": "mega/glalie-mega.png",
+    "types": [
+      "ice"
+    ],
+    "abilities": [
+      "refrigerate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 2.1,
+    "weight_kg": 350.2,
+    "color": "gray",
+    "habitat": "cave",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 120,
+      "defense": 80,
+      "special_attack": 120,
+      "special_defense": 80,
+      "speed": 100
+    },
+    "base_experience": 203,
+    "mega": true,
+    "base": "glalie"
+  },
+  "salamence-mega": {
+    "id": 373,
+    "number": "373",
+    "name": "Mega Salamence",
+    "api_name": "salamence-mega",
+    "image": "mega/salamence-mega.png",
+    "types": [
+      "dragon",
+      "flying"
+    ],
+    "abilities": [
+      "aerilate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.8,
+    "weight_kg": 112.6,
+    "color": "blue",
+    "habitat": "rough-terrain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 95,
+      "attack": 145,
+      "defense": 130,
+      "special_attack": 120,
+      "special_defense": 90,
+      "speed": 120
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "salamence"
+  },
+  "metagross-mega": {
+    "id": 376,
+    "number": "376",
+    "name": "Mega Metagross",
+    "api_name": "metagross-mega",
+    "image": "mega/metagross-mega.png",
+    "types": [
+      "steel",
+      "psychic"
+    ],
+    "abilities": [
+      "tough-claws"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 2.5,
+    "weight_kg": 942.9,
+    "color": "blue",
+    "habitat": "rough-terrain",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 145,
+      "defense": 150,
+      "special_attack": 105,
+      "special_defense": 110,
+      "speed": 110
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "metagross"
+  },
+  "latias-mega": {
+    "id": 380,
+    "number": "380",
+    "name": "Mega Latias",
+    "api_name": "latias-mega",
+    "image": "mega/latias-mega.png",
+    "types": [
+      "dragon",
+      "psychic"
+    ],
+    "abilities": [
+      "levitate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 1.8,
+    "weight_kg": 52,
+    "color": "red",
+    "habitat": "waters-edge",
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 100,
+      "defense": 120,
+      "special_attack": 140,
+      "special_defense": 150,
+      "speed": 110
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "latias"
+  },
+  "latios-mega": {
+    "id": 381,
+    "number": "381",
+    "name": "Mega Latios",
+    "api_name": "latios-mega",
+    "image": "mega/latios-mega.png",
+    "types": [
+      "dragon",
+      "psychic"
+    ],
+    "abilities": [
+      "levitate"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 2.3,
+    "weight_kg": 70,
+    "color": "blue",
+    "habitat": "waters-edge",
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 80,
+      "attack": 130,
+      "defense": 100,
+      "special_attack": 160,
+      "special_defense": 120,
+      "speed": 110
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "latios"
+  },
+  "rayquaza-mega": {
+    "id": 384,
+    "number": "384",
+    "name": "Mega Rayquaza",
+    "api_name": "rayquaza-mega",
+    "image": "mega/rayquaza-mega.png",
+    "types": [
+      "dragon",
+      "flying"
+    ],
+    "abilities": [
+      "delta-stream"
+    ],
+    "region": "Hoenn",
+    "generation": 3,
+    "height_m": 10.8,
+    "weight_kg": 392,
+    "color": "green",
+    "habitat": "rare",
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 105,
+      "attack": 180,
+      "defense": 100,
+      "special_attack": 180,
+      "special_defense": 100,
+      "speed": 115
+    },
+    "base_experience": 351,
+    "mega": true,
+    "base": "rayquaza"
+  },
+  "lopunny-mega": {
+    "id": 428,
+    "number": "428",
+    "name": "Mega Lopunny",
+    "api_name": "lopunny-mega",
+    "image": "mega/lopunny-mega.png",
+    "types": [
+      "normal",
+      "fighting"
+    ],
+    "abilities": [
+      "scrappy"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 1.3,
+    "weight_kg": 28.3,
+    "color": "brown",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 65,
+      "attack": 136,
+      "defense": 94,
+      "special_attack": 54,
+      "special_defense": 96,
+      "speed": 135
+    },
+    "base_experience": 203,
+    "mega": true,
+    "base": "lopunny"
+  },
+  "garchomp-mega": {
+    "id": 445,
+    "number": "445",
+    "name": "Mega Garchomp",
+    "api_name": "garchomp-mega",
+    "image": "mega/garchomp-mega.png",
+    "types": [
+      "dragon",
+      "ground"
+    ],
+    "abilities": [
+      "sand-force"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 1.9,
+    "weight_kg": 95,
+    "color": "blue",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 108,
+      "attack": 170,
+      "defense": 115,
+      "special_attack": 120,
+      "special_defense": 95,
+      "speed": 92
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "garchomp"
+  },
+  "lucario-mega": {
+    "id": 448,
+    "number": "448",
+    "name": "Mega Lucario",
+    "api_name": "lucario-mega",
+    "image": "mega/lucario-mega.png",
+    "types": [
+      "fighting",
+      "steel"
+    ],
+    "abilities": [
+      "adaptability"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 1.3,
+    "weight_kg": 57.5,
+    "color": "blue",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 70,
+      "attack": 145,
+      "defense": 88,
+      "special_attack": 140,
+      "special_defense": 70,
+      "speed": 112
+    },
+    "base_experience": 219,
+    "mega": true,
+    "base": "lucario"
+  },
+  "abomasnow-mega": {
+    "id": 460,
+    "number": "460",
+    "name": "Mega Abomasnow",
+    "api_name": "abomasnow-mega",
+    "image": "mega/abomasnow-mega.png",
+    "types": [
+      "grass",
+      "ice"
+    ],
+    "abilities": [
+      "snow-warning"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 2.7,
+    "weight_kg": 185,
+    "color": "white",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 90,
+      "attack": 132,
+      "defense": 105,
+      "special_attack": 132,
+      "special_defense": 105,
+      "speed": 30
+    },
+    "base_experience": 208,
+    "mega": true,
+    "base": "abomasnow"
+  },
+  "gallade-mega": {
+    "id": 475,
+    "number": "475",
+    "name": "Mega Gallade",
+    "api_name": "gallade-mega",
+    "image": "mega/gallade-mega.png",
+    "types": [
+      "psychic",
+      "fighting"
+    ],
+    "abilities": [
+      "inner-focus"
+    ],
+    "region": "Sinnoh",
+    "generation": 4,
+    "height_m": 1.6,
+    "weight_kg": 56.4,
+    "color": "white",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 68,
+      "attack": 165,
+      "defense": 95,
+      "special_attack": 65,
+      "special_defense": 115,
+      "speed": 110
+    },
+    "base_experience": 278,
+    "mega": true,
+    "base": "gallade"
+  },
+  "audino-mega": {
+    "id": 531,
+    "number": "531",
+    "name": "Mega Audino",
+    "api_name": "audino-mega",
+    "image": "mega/audino-mega.png",
+    "types": [
+      "normal",
+      "fairy"
+    ],
+    "abilities": [
+      "healer"
+    ],
+    "region": "Unova",
+    "generation": 5,
+    "height_m": 1.5,
+    "weight_kg": 32,
+    "color": "pink",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "stats": {
+      "hp": 103,
+      "attack": 60,
+      "defense": 126,
+      "special_attack": 80,
+      "special_defense": 126,
+      "speed": 50
+    },
+    "base_experience": 425,
+    "mega": true,
+    "base": "audino"
+  },
+  "diancie-mega": {
+    "id": 719,
+    "number": "719",
+    "name": "Mega Diancie",
+    "api_name": "diancie-mega",
+    "image": "mega/diancie-mega.png",
+    "types": [
+      "rock",
+      "fairy"
+    ],
+    "abilities": [
+      "magic-bounce"
+    ],
+    "region": "Kalos",
+    "generation": 6,
+    "height_m": 1.1,
+    "weight_kg": 27.8,
+    "color": "pink",
+    "habitat": "unknown",
+    "legendary": false,
+    "mythical": true,
+    "baby": false,
+    "stats": {
+      "hp": 50,
+      "attack": 160,
+      "defense": 110,
+      "special_attack": 160,
+      "special_defense": 110,
+      "speed": 110
+    },
+    "base_experience": 315,
+    "mega": true,
+    "base": "diancie"
+  }
+}

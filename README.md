@@ -31,6 +31,7 @@
 - [Comandos](#comandos)
 - [Modos](#modos)
 - [Pokémon shiny](#pokémon-shiny)
+- [Megaevoluciones](#megaevoluciones)
 - [Gen 9 y sprites faltantes](#gen-9-y-sprites-faltantes)
 - [Configuración](#configuración)
 - [Cómo funciona](#cómo-funciona)
@@ -52,7 +53,7 @@ Pokémon Fastfetch reemplaza la pantalla de inicio de la terminal por un panel c
 Características principales:
 
 - **Pokémon al azar** en cada terminal nueva, o uno fijo que elijas vos.
-- **Shiny:** 1 en 20 chances de que salga shiny, más comandos para verlos cuando quieras.
+- **Shiny y megas:** 1 en 20 chances de que salga shiny y 1 en 20 de que salga una megaevolución, más comandos para verlos cuando quieras.
 - **1025 Pokémon**, de la Gen 1 a la Gen 9, buscables por nombre o número.
 - **Responsive:** el panel ocupa todo el ancho de la terminal y se reacomoda si es angosta o baja.
 - **Rápido:** los paneles se guardan en caché y el próximo Pokémon se prepara en segundo plano.
@@ -150,14 +151,25 @@ Los nombres aceptan mayúsculas, espacios y signos: `pokefetch "Mr. Mime"` funci
 | `pokefetch --shiny` | Un shiny al azar, solo esta vez |
 | `pokefetch --shiny pikachu` | Un shiny puntual, solo esta vez |
 
+### Megaevoluciones ◈
+
+| Comando | Qué hace |
+|---|---|
+| `pokefetch --mega` | Una mega al azar, solo esta vez |
+| `pokefetch --mega charizard` | La mega de un Pokémon (si tiene X e Y, una al azar) |
+| `pokefetch charizard-mega-x` | Una mega puntual, por su nombre |
+| `pokefetch --shiny gengar-mega` | Una mega shiny |
+
 ### Qué muestran las terminales nuevas
 
 | Comando | Qué hace |
 |---|---|
-| `pokefetch --random-mode` | Al azar, con probabilidad de shiny (el modo predeterminado) |
+| `pokefetch --random-mode` | Al azar, con probabilidad de mega y shiny (el modo predeterminado) |
 | `pokefetch --set pikachu` | Siempre el mismo Pokémon |
 | `pokefetch --set-shiny pikachu` | Siempre el mismo, en shiny |
+| `pokefetch --set-mega gengar` | Siempre la misma mega |
 | `pokefetch --shiny-mode` | Siempre un shiny al azar |
+| `pokefetch --mega-mode` | Siempre una mega al azar |
 
 ### Mantenimiento
 
@@ -187,12 +199,14 @@ El modo define qué Pokémon aparece al **abrir una terminal nueva**. Se guarda 
 
 | Modo | Cómo se activa | Qué muestra |
 |---|---|---|
-| **Aleatorio** | `pokefetch --random-mode` | Un Pokémon distinto cada vez, con 1 en 20 de salir shiny |
+| **Aleatorio** | `pokefetch --random-mode` | Un Pokémon distinto cada vez, con 1 en 20 de salir mega y 1 en 20 de salir shiny |
 | **Fijo** | `pokefetch --set gengar` | Siempre Gengar |
 | **Fijo shiny** | `pokefetch --set-shiny gengar` | Siempre Gengar shiny |
-| **Solo shiny** | `pokefetch --shiny-mode` | Un shiny distinto cada vez |
+| **Fijo mega** | `pokefetch --set-mega gengar` | Siempre Mega Gengar |
+| **Solo shiny** | `pokefetch --shiny-mode` | Un shiny distinto cada vez (a veces, una mega shiny) |
+| **Solo megas** | `pokefetch --mega-mode` | Una mega distinta cada vez (a veces, shiny) |
 
-Los comandos que dicen "solo esta vez" (`pokefetch pikachu`, `--random`, `--shiny`) no cambian el modo.
+Los comandos que dicen "solo esta vez" (`pokefetch pikachu`, `--random`, `--shiny`, `--mega`) no cambian el modo.
 
 ---
 
@@ -208,9 +222,25 @@ Los sprites shiny se descargan con `./download-sprites.sh` y se guardan en la su
 
 ---
 
+## Megaevoluciones
+
+Están las **48 megaevoluciones clásicas** (Gen 6 y 7), incluidas las dobles: Charizard X e Y y Mewtwo X e Y. Cada mega muestra sus propios datos: tipos, estadísticas, habilidades, altura y peso. Mega Charizard X, por ejemplo, aparece como Fuego/Dragón con Garra Dura. En "Categoría" figura como **Megaevolución** (o **Mega · Legendario** para Mewtwo, Rayquaza, Latias y Latios).
+
+- **En modo aleatorio**, cada terminal tiene **1 en 20** chances de mostrar una mega. Es independiente del shiny, así que una mega shiny sale 1 de cada 400 veces. Podés cambiarlo con `POKEMON_MEGA_RATE` en la [configuración](#configuración) (`0` las desactiva).
+- **Cuando querés una**, usá `pokefetch --mega` o `pokefetch --mega charizard`.
+- **Para que salgan siempre**, usá `pokefetch --set-mega gengar` o `pokefetch --mega-mode`.
+
+Si un Pokémon tiene dos megas, `--set-mega` te pide que elijas cuál (`charizard-mega-x` o `charizard-mega-y`). Buscar por número (`pokefetch 6`) siempre muestra la forma base.
+
+Los sprites se descargan con `./download-sprites.sh` y se guardan en `mega/` y `mega/shiny/`. Los datos vienen incluidos en `config/megas.json`, así que no hace falta internet.
+
+> Las 26 megas nuevas de Leyendas Pokémon Z-A no están incluidas: todavía no existen sprites en este estilo que se puedan usar.
+
+---
+
 ## Gen 9 y sprites faltantes
 
-pokimg incluye los Pokémon hasta la Gen 8. Con dos scripts se agregan los que faltan (Leyendas Arceus y la Gen 9) y los 1025 shiny.
+pokimg incluye los Pokémon hasta la Gen 8. Con dos scripts se agregan los que faltan (Leyendas Arceus y la Gen 9), los 1025 shiny y las 48 megaevoluciones.
 
 **1. Descargá los sprites:**
 
@@ -219,12 +249,23 @@ cd ~/Proyectos/pokemon-fastfetch
 ./download-sprites.sh
 ```
 
-Baja unos 1150 sprites en un par de minutos, con la misma estética que pokimg: íconos de caja de 68×56, recortados y ampliados 9× sin suavizado. Los normales van a tu carpeta de sprites y los shiny a `shiny/`. Los que ya tenés no se vuelven a descargar, así que podés correrlo varias veces sin problema.
+Baja unos 1250 sprites en un par de minutos, con la misma estética que pokimg: íconos de caja de 68×56, recortados y ampliados 9× sin suavizado.
+
+| Qué | Dónde se guarda |
+|---|---|
+| Normales que faltan (#899 al #1025) | Tu carpeta de sprites |
+| Shiny de los 1025 Pokémon | `shiny/` |
+| Las 48 megaevoluciones clásicas | `mega/` |
+| Las megaevoluciones shiny | `mega/shiny/` |
+
+ Los que ya tenés no se vuelven a descargar, así que podés correrlo varias veces sin problema.
 
 | Opción | Qué hace |
 |---|---|
 | `--only-normal` | Descarga solo los sprites normales |
 | `--only-shiny` | Descarga solo los shiny |
+| `--only-megas` | Descarga solo las megaevoluciones (normales y shiny) |
+| `--no-megas` | No descarga las megaevoluciones |
 | `--dest RUTA` | Usa otra carpeta de sprites |
 | `--force` | Vuelve a descargar aunque el archivo exista |
 | `--jobs N` | Cantidad de descargas en paralelo (8 por defecto) |
@@ -254,6 +295,7 @@ La configuración está en `~/.config/pokemon-fastfetch/config`. Después de edi
 | Variable | Predeterminado | Qué controla |
 |---|---|---|
 | `POKEMON_SHINY_RATE` | `20` | Probabilidad de shiny en modo aleatorio: 1 en N (`0` los desactiva) |
+| `POKEMON_MEGA_RATE` | `20` | Probabilidad de megaevolución en modo aleatorio: 1 en N (`0` las desactiva) |
 | `POKEMON_PREFETCH` | `true` | Prepara el próximo Pokémon aleatorio en segundo plano |
 | `POKEMON_PANEL_ROWS` | `20` | Altura preferida del panel Pokémon, en filas de la terminal |
 | `POKEMON_PANEL_CACHE_MAX` | `60` | Cantidad máxima de paneles guardados en caché |
@@ -287,7 +329,7 @@ El panel del sistema también usa todo el ancho, con la barra divisoria en el ce
 ### Rendimiento
 
 - **Caché de paneles:** cada panel se genera una sola vez por Pokémon y tamaño de terminal, y después se reutiliza.
-- **Pre-render:** en modo aleatorio, mientras usás la terminal se prepara en segundo plano el próximo Pokémon (incluido si va a ser shiny). La terminal siguiente abre casi al instante.
+- **Pre-render:** en modo aleatorio, mientras usás la terminal se prepara en segundo plano el próximo Pokémon (incluido si va a ser mega o shiny). La terminal siguiente abre casi al instante.
 - **Datos del sistema en caché:** CPU, GPU, versiones y fuente se calculan una vez por cada arranque de la computadora.
 - **En paralelo:** el panel se genera mientras se junta la información del sistema.
 
@@ -302,7 +344,7 @@ El panel del sistema también usa todo el ancho, con la barra divisoria en el ce
 | Paneles generados | `~/.cache/pokemon-fastfetch/panels-v2` |
 | Respaldos | `~/.local/share/pokemon-fastfetch-backups` |
 | Integración con Fish | `~/.config/fish/conf.d/pokemon-fastfetch.fish` |
-| Sprites | `~/.local/share/pokimg/images` (shiny en `shiny/`) |
+| Sprites | `~/.local/share/pokimg/images` (shiny en `shiny/`, megas en `mega/`) |
 
 Si definiste `XDG_DATA_HOME`, `XDG_CONFIG_HOME` o `XDG_CACHE_HOME`, se usan esas carpetas en lugar de las predeterminadas.
 
@@ -356,6 +398,9 @@ Probá con el número (`pokefetch 122`) o con guiones (`pokefetch mr-mime`). Si 
 **Nunca sale un shiny, o `--shiny` da error.**
 Faltan los sprites shiny: ejecutá `./download-sprites.sh --only-shiny`. Verificá también que `POKEMON_SHINY_RATE` no sea `0`.
 
+**`--mega` da error o nunca sale una mega.**
+Faltan los sprites: ejecutá `./download-sprites.sh --only-megas`. Si dice que faltan los datos, reinstalá con `./install.sh --yes`. Verificá también que `POKEMON_MEGA_RATE` no sea `0`.
+
 **Un panel se ve desactualizado o mal.**
 Regeneralo con `pokefetch --rerender pikachu`.
 
@@ -397,6 +442,7 @@ GitHub Actions corre ShellCheck, la validación de la Pokédex y los tests en ca
 pokemon-fastfetch/
 ├── .github/workflows/ci.yml   Integración continua
 ├── config/pokedex.json        Pokédex incluida
+├── config/megas.json          Datos de las megaevoluciones
 ├── docs/preview.png           Imagen de este README
 ├── lib/common.sh              Funciones compartidas
 ├── tests/run-tests.sh         Tests
@@ -419,9 +465,9 @@ pokemon-fastfetch/
 ## Créditos y licencia
 
 - Sprites de la Gen 1 a la 8: [pokimg](https://github.com/FuzzyGrim/pokimg), a partir de los íconos de caja de Pokémon Espada/Escudo.
-- Shiny y Leyendas Arceus: [PokéSprite](https://github.com/msikma/pokesprite).
+- Shiny, megaevoluciones y Leyendas Arceus: [PokéSprite](https://github.com/msikma/pokesprite).
 - Gen 9: [bamq/pokemon-sprites](https://github.com/bamq/pokemon-sprites), íconos del National Pokédex Version Delta Project adaptados a 68×56. Los créditos de cada artista están en ese repositorio.
-- Datos de los Pokémon: [PokeAPI](https://pokeapi.co/).
+- Datos de los Pokémon y las megaevoluciones: [PokeAPI](https://pokeapi.co/).
 
 Pokémon y sus sprites son © Nintendo, Creatures Inc. y GAME FREAK Inc. Este es un proyecto de fans, sin fines comerciales y sin relación con ellos.
 

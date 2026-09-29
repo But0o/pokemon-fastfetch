@@ -178,6 +178,7 @@ check_project_files() {
         "render-pokemon.sh"
         "build-pokedex-cache.sh"
         "config/pokedex.json"
+        "config/megas.json"
         "lib/common.sh"
         "VERSION"
     )
@@ -371,6 +372,7 @@ write_config() {
     local managed_keys=(
         POKEMON_PANEL_WIDTH POKEMON_PANEL_HEIGHT POKEMON_PANEL_ROWS
         POKEMON_PANEL_CACHE_MAX POKEMON_PREFETCH POKEMON_SHINY_RATE
+        POKEMON_MEGA_RATE
         SYSTEM_PANEL_MAX_WIDTH COLUMN_GAP
         SHOW_SYSTEM_INFO SHOW_COLOR_PALETTE
     )
@@ -382,6 +384,7 @@ write_config() {
         [POKEMON_PANEL_CACHE_MAX]=60
         [POKEMON_PREFETCH]=true
         [POKEMON_SHINY_RATE]=20
+        [POKEMON_MEGA_RATE]=20
         [SYSTEM_PANEL_MAX_WIDTH]=0
         [COLUMN_GAP]=6
         [SHOW_SYSTEM_INFO]=true
@@ -442,6 +445,8 @@ POKEMON_PANEL_CACHE_MAX=${values[POKEMON_PANEL_CACHE_MAX]}
 POKEMON_PREFETCH=${values[POKEMON_PREFETCH]}
 # Probabilidad de shiny: 1 en N (0 los desactiva).
 POKEMON_SHINY_RATE=${values[POKEMON_SHINY_RATE]}
+# Probabilidad de megaevolución: 1 en N (0 las desactiva).
+POKEMON_MEGA_RATE=${values[POKEMON_MEGA_RATE]}
 
 # Panel del sistema
 SYSTEM_PANEL_MAX_WIDTH=${values[SYSTEM_PANEL_MAX_WIDTH]}
@@ -461,6 +466,22 @@ EOF
     mv -f "$temporary_file" "$config_file"
 
     pf_success "Configuración actualizada: $config_file"
+}
+
+# Los datos de las megas no se editan a mano: siempre se copia la versión
+# del repositorio.
+install_megas_data() {
+    local bundled_megas="$SOURCE_DIR/config/megas.json"
+    local megas_count=0
+
+    if ! megas_count="$(jq 'length' "$bundled_megas" 2>/dev/null)"; then
+        pf_die "config/megas.json contiene un JSON inválido."
+    fi
+
+    cp -f "$bundled_megas" "$CACHE_DIR/megas.json.tmp"
+    mv -f "$CACHE_DIR/megas.json.tmp" "$CACHE_DIR/megas.json"
+
+    pf_success "Datos de megaevoluciones instalados ($megas_count)."
 }
 
 ensure_pokedex_cache() {
@@ -645,6 +666,7 @@ main() {
     copy_project_files
     write_config "$pokemon_dir"
     ensure_pokedex_cache
+    install_megas_data
     write_fish_config
     validate_installation
 

@@ -111,8 +111,18 @@ fi
 # Carpeta de sprites (los shiny están en su subcarpeta "shiny/").
 POKEMON_DIR="${POKEMON_DIR:-$HOME/.local/share/pokimg/images}"
 
-# Valor especial de fixed-pokemon para el modo "solo shiny al azar".
+# Probabilidad de megaevolución en modo aleatorio: 1 en POKEMON_MEGA_RATE.
+# 0 desactiva las megas aleatorias.
+POKEMON_MEGA_RATE="${POKEMON_MEGA_RATE:-20}"
+
+if ! [[ "$POKEMON_MEGA_RATE" =~ ^[0-9]+$ ]]; then
+    POKEMON_MEGA_RATE=20
+fi
+
+# Valores especiales de fixed-pokemon para los modos "solo shiny" y
+# "solo megas" al azar.
 SHINY_MODE_MARKER="@shiny-random"
+MEGA_MODE_MARKER="@mega-random"
 SHOW_COLOR_PALETTE="${SHOW_COLOR_PALETTE:-true}"
 
 # ────────────────────────────────────────────────────────────────
@@ -146,6 +156,7 @@ show_help() {
     local text=""
     local muted=""
     local shiny=""
+    local mega=""
     local reset=""
 
     # Colores solo en una terminal (no al redirigir a un archivo o a less).
@@ -156,6 +167,7 @@ show_help() {
         text="$GRAY"
         muted="$DARK_GRAY"
         shiny=$'\033[38;2;245;197;66m'
+        mega=$'\033[38;2;149;103;255m'
         reset="$RESET"
     fi
 
@@ -179,6 +191,8 @@ show_help() {
 
     if [[ "$fixed_value" == "$SHINY_MODE_MARKER" ]]; then
         current_mode="solo shiny, al azar"
+    elif [[ "$fixed_value" == "$MEGA_MODE_MARKER" ]]; then
+        current_mode="solo megas, al azar"
     elif [[ -n "$fixed_value" && "$fixed_flag" == "shiny" ]]; then
         current_mode="fijo, $fixed_value shiny ✦"
     elif [[ -n "$fixed_value" ]]; then
@@ -205,11 +219,19 @@ show_help() {
     command_line "pokefetch --shiny" "Un shiny al azar, solo esta vez"
     command_line "pokefetch --shiny pikachu" "Un shiny puntual, solo esta vez"
 
+    section "Megaevoluciones ${mega}◈${reset}"
+    command_line "pokefetch --mega" "Una mega al azar, solo esta vez"
+    command_line "pokefetch --mega charizard" "La mega de un Pokémon (X o Y al azar)"
+    command_line "pokefetch charizard-mega-x" "Una mega puntual, por su nombre"
+    command_line "pokefetch --shiny gengar-mega" "Una mega shiny"
+
     section "Qué muestran las terminales nuevas"
-    command_line "pokefetch --random-mode" "Al azar, con probabilidad de shiny"
+    command_line "pokefetch --random-mode" "Al azar, con probabilidad de mega y shiny"
     command_line "pokefetch --set pikachu" "Siempre el mismo Pokémon"
     command_line "pokefetch --set-shiny pikachu" "Siempre el mismo, en shiny"
+    command_line "pokefetch --set-mega gengar" "Siempre la misma mega"
     command_line "pokefetch --shiny-mode" "Siempre un shiny al azar"
+    command_line "pokefetch --mega-mode" "Siempre una mega al azar"
 
     section "Mantenimiento"
     command_line "pokefetch --rerender pikachu" "Vuelve a generar el panel de un Pokémon"
@@ -217,15 +239,23 @@ show_help() {
     command_line "pokefetch comandos" "Muestra esta lista (también --help)"
 
     section "Scripts del repositorio (se corren desde su carpeta)"
-    command_line "./download-sprites.sh" "Descarga sprites faltantes y shiny"
+    command_line "./download-sprites.sh" "Descarga sprites faltantes, shiny y megas"
     command_line "./add-missing-pokemon.sh" "Agrega a la Pokédex los Pokémon nuevos"
     command_line "./install.sh --yes" "Instala o actualiza"
     command_line "./uninstall.sh" "Desinstala"
 
     section "Estado actual"
     printf '  %sModo:%s     %s\n' "$text" "$reset" "$current_mode"
+    local mega_chance="desactivadas"
+
+    if ((POKEMON_MEGA_RATE > 0)); then
+        mega_chance="1 en $POKEMON_MEGA_RATE"
+    fi
+
     printf '  %sShiny:%s    %s %s(POKEMON_SHINY_RATE)%s\n' \
         "$text" "$reset" "$shiny_chance" "$muted" "$reset"
+    printf '  %sMega:%s     %s %s(POKEMON_MEGA_RATE)%s\n' \
+        "$text" "$reset" "$mega_chance" "$muted" "$reset"
     printf '  %sConfig:%s   %s\n' "$text" "$reset" "$CONFIG_FILE"
 }
 
@@ -415,6 +445,10 @@ pf_require_commands \
 # costaría una lectura extra. Si está roto, jq falla más adelante.
 pf_require_nonempty_file "$POKEDEX_FILE" "La caché Pokédex"
 
+MEGAS_FILE="$CACHE_ROOT/megas.json"
+MEGA_INDEX_FILE="$CACHE_ROOT/mega-keys.txt"
+MEGA_KEYS=()
+
 # Índice de claves con imagen, para elegir al azar sin leer el JSON.
 # Se regenera solo cuando la Pokédex es más nueva que el índice.
 POKEDEX_INDEX_FILE="$CACHE_ROOT/pokedex-keys.txt"
@@ -423,6 +457,90 @@ POKEDEX_INDEX_FILE="$CACHE_ROOT/pokedex-keys.txt"
 roll_shiny() {
     ((POKEMON_SHINY_RATE > 0)) &&
         (( ${SRANDOM:-$RANDOM} % POKEMON_SHINY_RATE == 0 ))
+}
+
+roll_mega() {
+    ((POKEMON_MEGA_RATE > 0)) &&
+        (( ${SRANDOM:-$RANDOM} % POKEMON_MEGA_RATE == 0 ))
+}
+
+is_mega_key() {
+    [[ "$1" == *-mega || "$1" == *-mega-[xy] ]]
+}
+
+require_mega_sprites() {
+    local sprites=()
+
+    if [[ -d "$POKEMON_DIR/mega" ]]; then
+        sprites=("$POKEMON_DIR/mega/"*.png)
+    fi
+
+    if [[ ! -e "${sprites[0]:-}" ]]; then
+        pf_error "No hay sprites de megaevoluciones en: $POKEMON_DIR/mega"
+        pf_die "Descargalos desde el repositorio con: ./download-sprites.sh --only-megas"
+    fi
+
+    if [[ ! -s "$MEGAS_FILE" ]]; then
+        pf_die "Faltan los datos de las megaevoluciones. Reinstalá con: ./install.sh --yes"
+    fi
+}
+
+# Claves de todas las megas (se regenera cuando cambia megas.json).
+load_mega_keys() {
+    MEGA_KEYS=()
+
+    [[ -s "$MEGAS_FILE" ]] || return 0
+
+    if [[ ! -s "$MEGA_INDEX_FILE" || "$MEGAS_FILE" -nt "$MEGA_INDEX_FILE" ]]; then
+        if jq -r 'keys[]' "$MEGAS_FILE" > "$MEGA_INDEX_FILE.tmp" 2>/dev/null; then
+            mv -f "$MEGA_INDEX_FILE.tmp" "$MEGA_INDEX_FILE"
+        else
+            rm -f "$MEGA_INDEX_FILE.tmp"
+            return 0
+        fi
+    fi
+
+    mapfile -t MEGA_KEYS < "$MEGA_INDEX_FILE"
+}
+
+# Una mega al azar entre las que tienen sprite descargado.
+pick_random_mega() {
+    local available=()
+    local key=""
+
+    load_mega_keys
+
+    for key in "${MEGA_KEYS[@]}"; do
+        if [[ -f "$POKEMON_DIR/mega/$key.png" ]]; then
+            available+=("$key")
+        fi
+    done
+
+    if ((${#available[@]} == 0)); then
+        return 1
+    fi
+
+    printf '%s' "${available[${SRANDOM:-$RANDOM} % ${#available[@]}]}"
+}
+
+# Imprime las megas de un Pokémon (una por línea).
+# Acepta la forma base ("charizard", "6") o una mega ("charizard-mega-x").
+resolve_megas() {
+    local request="$1"
+    local base_key=""
+    local key=""
+
+    load_mega_keys
+
+    base_key="$("$RENDER_SCRIPT" --check "$request" 2>/dev/null || true)"
+
+    [[ -n "$base_key" ]] || return 0
+
+    for key in "${MEGA_KEYS[@]}"; do
+        if [[ "$key" == "$base_key" || "$key" == "$base_key"-mega* ]]; then
+            printf '%s\n' "$key"
+        fi
+    done
 }
 
 require_shiny_sprites() {
@@ -483,6 +601,26 @@ SHINY_LEVEL=0
 
 # Modo "solo shiny al azar" (--shiny-mode).
 SHINY_MODE=false
+
+# Modo "solo megas al azar" (--mega-mode).
+MEGA_MODE=false
+
+# Tira los dados de mega y shiny para una selección aleatoria.
+apply_random_rolls() {
+    local mega_request=""
+
+    if [[ "$MEGA_MODE" == "true" ]] || roll_mega; then
+        mega_request="$(pick_random_mega || true)"
+
+        if [[ -n "$mega_request" ]]; then
+            REQUEST="$mega_request"
+        fi
+    fi
+
+    if [[ "$SHINY_MODE" == "true" ]] || roll_shiny; then
+        SHINY_LEVEL=1
+    fi
+}
 
 case "${1:-}" in
     --set)
@@ -560,12 +698,81 @@ case "${1:-}" in
             REQUEST="$2"
             SHINY_LEVEL=2
         else
-            # Un shiny al azar, solo esta vez.
+            # Un shiny al azar, solo esta vez (puede tocar una mega).
             RANDOM_SELECTION=true
             SHINY_MODE=true
-            SHINY_LEVEL=1
             REQUEST="$(pick_random_pokemon || true)"
+            apply_random_rolls
         fi
+        ;;
+
+    --mega)
+        require_mega_sprites
+
+        if [[ -n "${2:-}" ]]; then
+            # La mega de un Pokémon puntual (si tiene X e Y, una al azar).
+            mapfile -t REQUESTED_MEGAS < <(resolve_megas "$2")
+
+            if ((${#REQUESTED_MEGAS[@]} == 0)); then
+                pf_die "$2 no tiene megaevolución (o no se encontró)."
+            fi
+
+            REQUEST="${REQUESTED_MEGAS[${SRANDOM:-$RANDOM} % ${#REQUESTED_MEGAS[@]}]}"
+        else
+            # Una mega al azar, solo esta vez (con probabilidad de shiny).
+            RANDOM_SELECTION=true
+            MEGA_MODE=true
+            apply_random_rolls
+        fi
+        ;;
+
+    --set-mega)
+        FIXED_REQUEST="${2:-}"
+
+        if [[ -z "$FIXED_REQUEST" ]]; then
+            pf_error "Tenés que indicar un Pokémon o una megaevolución."
+            echo
+            echo "Ejemplos:"
+            echo "  fastfetch --set-mega gengar"
+            echo "  fastfetch --set-mega charizard-mega-x"
+            exit 1
+        fi
+
+        require_mega_sprites
+        mapfile -t REQUESTED_MEGAS < <(resolve_megas "$FIXED_REQUEST")
+
+        if ((${#REQUESTED_MEGAS[@]} == 0)); then
+            pf_die "$FIXED_REQUEST no tiene megaevolución (o no se encontró)."
+        fi
+
+        if ((${#REQUESTED_MEGAS[@]} > 1)); then
+            pf_error "$FIXED_REQUEST tiene más de una megaevolución. Elegí una:"
+            printf '  fastfetch --set-mega %s\n' "${REQUESTED_MEGAS[@]}"
+            exit 1
+        fi
+
+        if [[ ! -f "$POKEMON_DIR/mega/${REQUESTED_MEGAS[0]}.png" ]]; then
+            pf_die "Falta el sprite de ${REQUESTED_MEGAS[0]}. Descargalo con: ./download-sprites.sh --only-megas"
+        fi
+
+        printf '%s\n' "${REQUESTED_MEGAS[0]}" > "$FIXED_POKEMON_FILE"
+        discard_prefetched
+
+        echo "Megaevolución fija configurada: ${REQUESTED_MEGAS[0]}"
+        echo "Se mostrará al abrir nuevas terminales."
+        echo "Para verla shiny: fastfetch --set-shiny ${REQUESTED_MEGAS[0]}"
+        exit 0
+        ;;
+
+    --mega-mode)
+        require_mega_sprites
+        printf '%s\n' "$MEGA_MODE_MARKER" > "$FIXED_POKEMON_FILE"
+        discard_prefetched
+
+        echo "Modo mega activado."
+        echo "Cada terminal mostrará una megaevolución al azar."
+        echo "Para volver al modo normal: fastfetch --random-mode"
+        exit 0
         ;;
 
     --random-mode)
@@ -577,6 +784,10 @@ case "${1:-}" in
 
         if ((POKEMON_SHINY_RATE > 0)); then
             echo "Probabilidad de shiny: 1 en $POKEMON_SHINY_RATE."
+        fi
+
+        if ((POKEMON_MEGA_RATE > 0)); then
+            echo "Probabilidad de mega:  1 en $POKEMON_MEGA_RATE."
         fi
 
         exit 0
@@ -599,10 +810,7 @@ case "${1:-}" in
         # Selección aleatoria solo para esta ejecución.
         RANDOM_SELECTION=true
         REQUEST="$(pick_random_pokemon || true)"
-
-        if roll_shiny; then
-            SHINY_LEVEL=1
-        fi
+        apply_random_rolls
         ;;
 
     "")
@@ -614,11 +822,17 @@ case "${1:-}" in
         fi
 
         if [[ "$FIXED_VALUE" == "$SHINY_MODE_MARKER" ]]; then
-            # --shiny-mode: siempre shiny, Pokémon al azar.
+            # --shiny-mode: siempre shiny, Pokémon al azar (puede ser mega).
             RANDOM_SELECTION=true
             SHINY_MODE=true
-            SHINY_LEVEL=1
             REQUEST="$(pick_random_pokemon || true)"
+            apply_random_rolls
+        elif [[ "$FIXED_VALUE" == "$MEGA_MODE_MARKER" ]]; then
+            # --mega-mode: siempre mega, al azar (puede ser shiny).
+            RANDOM_SELECTION=true
+            MEGA_MODE=true
+            REQUEST="$(pick_random_pokemon || true)"
+            apply_random_rolls
         elif [[ -n "$FIXED_VALUE" ]]; then
             # --set / --set-shiny
             REQUEST="$FIXED_VALUE"
@@ -627,13 +841,10 @@ case "${1:-}" in
                 SHINY_LEVEL=1
             fi
         else
-            # Modo aleatorio con probabilidad de shiny.
+            # Modo aleatorio con probabilidad de mega y de shiny.
             RANDOM_SELECTION=true
             REQUEST="$(pick_random_pokemon || true)"
-
-            if roll_shiny; then
-                SHINY_LEVEL=1
-            fi
+            apply_random_rolls
         fi
         ;;
 
@@ -748,8 +959,12 @@ if [[ "$RANDOM_SELECTION" == "true" && -s "$NEXT_RANDOM_FILE" ]]; then
         rm -f "$CLAIMED_FILE"
     fi
 
-    # En modo shiny no sirve un pre-render normal (quedó del modo anterior).
+    # En modo shiny o mega no sirve un pre-render que no lo sea.
     if [[ "$SHINY_MODE" == "true" && "${PREFETCHED_SHINY:-0}" != "1" ]]; then
+        PREFETCHED_REQUEST=""
+    fi
+
+    if [[ "$MEGA_MODE" == "true" ]] && ! is_mega_key "$PREFETCHED_REQUEST"; then
         PREFETCHED_REQUEST=""
     fi
 
@@ -774,7 +989,17 @@ start_random_prefetch() {
         return 0
     fi
 
-    # El dado del shiny se tira ahora, así el panel queda pre-renderizado.
+    # Los dados de mega y shiny se tiran ahora, así el panel queda listo.
+    if [[ "$MEGA_MODE" == "true" ]] || roll_mega; then
+        local next_mega=""
+
+        next_mega="$(pick_random_mega || true)"
+
+        if [[ -n "$next_mega" ]]; then
+            next_request="$next_mega"
+        fi
+    fi
+
     if [[ "$SHINY_MODE" == "true" ]] || roll_shiny; then
         next_shiny=1
     fi

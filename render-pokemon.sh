@@ -823,9 +823,8 @@ SPRITE_PX_HEIGHT="$((SPRITE_HEIGHT * PANEL_HEIGHT / DESIGN_HEIGHT))"
 SPRITE_PX_X="$((SPRITE_X * PANEL_HEIGHT / DESIGN_HEIGHT))"
 SPRITE_PX_Y="$((SPRITE_Y * PANEL_HEIGHT / DESIGN_HEIGHT))"
 
-SVG_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}.svg"
-SPRITE_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}-sprite.png"
-BASE_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}-base.png"
+SVG_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}-$$.svg"
+PANEL_TEMP_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}-$$.png"
 
 # ────────────────────────────────────────────────────────────────
 # Generar SVG
@@ -1014,7 +1013,12 @@ fi
 printf '</svg>\n' >> "$SVG_FILE"
 
 # ────────────────────────────────────────────────────────────────
-# Renderizar base SVG
+# Renderizar el panel
+#
+# Un solo proceso de ImageMagick rasteriza el SVG, prepara el sprite y
+# los compone. Antes eran tres procesos con dos PNG intermedios.
+# La compresión PNG rápida genera archivos algo más grandes pero ahorra
+# tiempo en cada render; la imagen es idéntica píxel a píxel.
 # ────────────────────────────────────────────────────────────────
 
 "$MAGICK_BIN" \
@@ -1022,35 +1026,28 @@ printf '</svg>\n' >> "$SVG_FILE"
     -density 144 \
     "$SVG_FILE" \
     -resize "${PANEL_WIDTH}x${PANEL_HEIGHT}!" \
-    "$BASE_FILE"
-
-# ────────────────────────────────────────────────────────────────
-# Preparar sprite
-# ────────────────────────────────────────────────────────────────
-
-"$MAGICK_BIN" \
-    "$SELECTED_IMAGE" \
-    -coalesce \
-    -delete 1--1 \
-    -background none \
-    -alpha on \
-    -filter point \
-    -resize "${SPRITE_PX_WIDTH}x${SPRITE_PX_HEIGHT}>" \
-    -gravity center \
-    -extent "${SPRITE_PX_WIDTH}x${SPRITE_PX_HEIGHT}" \
-    "$SPRITE_FILE"
-
-# ────────────────────────────────────────────────────────────────
-# Componer panel final
-# ────────────────────────────────────────────────────────────────
-
-"$MAGICK_BIN" \
-    "$BASE_FILE" \
-    "$SPRITE_FILE" \
+    \( \
+        "$SELECTED_IMAGE" \
+        -coalesce \
+        -delete 1--1 \
+        -background none \
+        -alpha on \
+        -filter point \
+        -resize "${SPRITE_PX_WIDTH}x${SPRITE_PX_HEIGHT}>" \
+        -gravity center \
+        -extent "${SPRITE_PX_WIDTH}x${SPRITE_PX_HEIGHT}" \
+        +gravity \
+    \) \
     -geometry "+${SPRITE_PX_X}+${SPRITE_PX_Y}" \
     -composite \
     -strip \
-    "$FINAL_PANEL"
+    -define png:compression-level=1 \
+    -define png:compression-filter=0 \
+    "$PANEL_TEMP_FILE"
+
+# Mover al nombre final recién al terminar: otro proceso nunca ve un
+# panel a medio escribir (importante con el pre-render en segundo plano).
+mv -f "$PANEL_TEMP_FILE" "$FINAL_PANEL"
 
 if [[ ! -s "$FINAL_PANEL" ]]; then
     pf_die "No se pudo generar el panel de $NAME."
@@ -1059,10 +1056,7 @@ fi
 ln -sfn "${FINAL_PANEL##*/}" "$CURRENT_PANEL"
 
 # Limpiar temporales de este render.
-rm -f \
-    "$SVG_FILE" \
-    "$SPRITE_FILE" \
-    "$BASE_FILE"
+rm -f "$SVG_FILE" "$PANEL_TEMP_FILE"
 
 # ────────────────────────────────────────────────────────────────
 # Limpiar caché vieja

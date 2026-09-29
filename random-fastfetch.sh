@@ -96,6 +96,9 @@ fi
 COLUMN_GAP="${COLUMN_GAP:-6}"
 
 SHOW_SYSTEM_INFO="${SHOW_SYSTEM_INFO:-true}"
+
+# Pre-renderizar en segundo plano el próximo Pokémon aleatorio.
+POKEMON_PREFETCH="${POKEMON_PREFETCH:-true}"
 SHOW_COLOR_PALETTE="${SHOW_COLOR_PALETTE:-true}"
 
 # ────────────────────────────────────────────────────────────────
@@ -381,6 +384,7 @@ pf_require_executable "$RENDER_SCRIPT" "El renderizador Pokémon"
 
 REQUEST=""
 FORCE_RERENDER=false
+RANDOM_SELECTION=false
 
 case "${1:-}" in
     --set)
@@ -432,6 +436,7 @@ case "${1:-}" in
 
     --random|random)
         # Selección aleatoria solo para esta ejecución.
+        RANDOM_SELECTION=true
         REQUEST="$(pick_random_pokemon || true)"
         ;;
 
@@ -439,6 +444,7 @@ case "${1:-}" in
         if [[ -s "$FIXED_POKEMON_FILE" ]]; then
             read -r REQUEST < "$FIXED_POKEMON_FILE" || true
         else
+            RANDOM_SELECTION=true
             REQUEST="$(pick_random_pokemon || true)"
         fi
         ;;
@@ -527,6 +533,65 @@ if ((PANEL_ROWS < 5)); then
 fi
 
 PANEL_PIXEL_HEIGHT="$((PANEL_ROWS * CELL_HEIGHT))"
+
+# ────────────────────────────────────────────────────────────────
+# Pokémon pre-renderizado (modo aleatorio)
+#
+# Después de mostrar el panel se renderiza en segundo plano el próximo
+# Pokémon al azar para este tamaño de terminal. Así la siguiente
+# terminal lo encuentra en caché y no espera a ImageMagick.
+# ────────────────────────────────────────────────────────────────
+
+NEXT_RANDOM_FILE="$CACHE_ROOT/next-random-${PANEL_PIXEL_WIDTH}x${PANEL_PIXEL_HEIGHT}"
+
+if [[ "$RANDOM_SELECTION" == "true" && -s "$NEXT_RANDOM_FILE" ]]; then
+    CLAIMED_FILE="$NEXT_RANDOM_FILE.claimed-$$"
+    PREFETCHED_REQUEST=""
+
+    # mv es atómico: si se abren dos terminales a la vez, solo una
+    # se queda con el Pokémon pre-renderizado.
+    if mv -f "$NEXT_RANDOM_FILE" "$CLAIMED_FILE" 2>/dev/null; then
+        read -r PREFETCHED_REQUEST < "$CLAIMED_FILE" || true
+        rm -f "$CLAIMED_FILE"
+    fi
+
+    if [[ -n "$PREFETCHED_REQUEST" ]]; then
+        REQUEST="$PREFETCHED_REQUEST"
+    fi
+fi
+
+start_random_prefetch() {
+    local next_request=""
+
+    if [[ "$POKEMON_PREFETCH" != "true" || -s "$NEXT_RANDOM_FILE" ]]; then
+        return 0
+    fi
+
+    next_request="$(pick_random_pokemon || true)"
+
+    if [[ -z "$next_request" || "$next_request" == "$REQUEST" ]]; then
+        return 0
+    fi
+
+    (
+        trap - EXIT
+
+        low_priority=()
+
+        if pf_command_exists nice; then
+            low_priority=(nice -n 19)
+        fi
+
+        if PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
+            PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
+            "${low_priority[@]}" "$RENDER_SCRIPT" "$next_request"; then
+            printf '%s\n' "$next_request" > "$NEXT_RANDOM_FILE.tmp-$BASHPID" &&
+                mv -f "$NEXT_RANDOM_FILE.tmp-$BASHPID" "$NEXT_RANDOM_FILE"
+        fi
+    ) < /dev/null > /dev/null 2>&1 &
+
+    disown 2>/dev/null || true
+}
 
 # ────────────────────────────────────────────────────────────────
 # Obtener panel Pokémon
@@ -1184,6 +1249,10 @@ kitten icat \
     "$PANEL_IMAGE"
 
 tput cup "$PANEL_ROWS" 0
+
+if [[ "$RANDOM_SELECTION" == "true" ]]; then
+    start_random_prefetch
+fi
 
 if [[ "$SHOW_SYSTEM_INFO" != "true" ]]; then
     exit 0

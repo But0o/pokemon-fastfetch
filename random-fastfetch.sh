@@ -74,8 +74,14 @@ RENDER_SCRIPT="$SCRIPT_DIR/render-pokemon.sh"
 # Configuración visual
 # ────────────────────────────────────────────────────────────────
 
-# Cantidad de filas que ocupará el panel Pokémon en Kitty.
-POKEMON_PANEL_ROWS="${POKEMON_PANEL_ROWS:-22}"
+# Altura preferida del panel Pokémon, en filas de la terminal.
+# El ancho siempre ocupa toda la terminal; si la terminal es angosta,
+# el panel usa menos filas para que el contenido siga entrando.
+POKEMON_PANEL_ROWS="${POKEMON_PANEL_ROWS:-20}"
+
+if ! [[ "$POKEMON_PANEL_ROWS" =~ ^[0-9]+$ ]] || ((POKEMON_PANEL_ROWS < 5)); then
+    POKEMON_PANEL_ROWS=20
+fi
 
 # Ancho máximo del contenido inferior.
 SYSTEM_PANEL_MAX_WIDTH="${SYSTEM_PANEL_MAX_WIDTH:-150}"
@@ -232,13 +238,78 @@ get_terminal_columns() {
 repeat_character() {
     local character="$1"
     local amount="$2"
+    local line=""
 
     if ((amount <= 0)); then
         return
     fi
 
-    printf '%*s' "$amount" '' |
-        tr ' ' "$character"
+    # No usar tr: trabaja por bytes y rompe caracteres UTF-8 como '─'.
+    printf -v line '%*s' "$amount" ''
+    printf '%s' "${line// /$character}"
+}
+
+# Consulta el tamaño de celda directamente a la terminal.
+query_cell_size() {
+    local saved_tty=""
+    local reply=""
+
+    { exec 3<>/dev/tty; } 2>/dev/null || return 1
+
+    saved_tty="$(stty -g <&3 2>/dev/null)" || {
+        exec 3<&-
+        return 1
+    }
+
+    stty -echo -icanon min 0 time 3 <&3 2>/dev/null
+    printf '\033[16t' >&3
+    IFS= read -r -d t -t 1 reply <&3 || true
+    stty "$saved_tty" <&3 2>/dev/null
+    exec 3<&-
+
+    if [[ "$reply" =~ \[6\;([0-9]+)\;([0-9]+)$ ]]; then
+        printf '%s %s' "${BASH_REMATCH[2]}" "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    return 1
+}
+
+# Imprime "ANCHO ALTO" de una celda en píxeles.
+get_cell_size() {
+    local columns="$1"
+    local lines=""
+    local window_size=""
+    local cell_width=0
+    local cell_height=0
+
+    lines="$(tput lines 2>/dev/null || printf '0')"
+
+    window_size="$(
+        { kitten icat --print-window-size < /dev/tty; } 2>/dev/null ||
+            true
+    )"
+
+    if [[ "$window_size" =~ ^([0-9]+)x([0-9]+)$ ]] &&
+        [[ "$lines" =~ ^[0-9]+$ ]] &&
+        ((columns > 0 && lines > 0)); then
+        cell_width="$((BASH_REMATCH[1] / columns))"
+        cell_height="$((BASH_REMATCH[2] / lines))"
+    fi
+
+    # Plan B: pedirle a la terminal el tamaño de celda (CSI 16 t).
+    # Kitty responde ESC [ 6 ; ALTO ; ANCHO t
+    if ((cell_width <= 0 || cell_height <= 0)); then
+        read -r cell_width cell_height <<< "$(query_cell_size || printf '0 0')"
+    fi
+
+    # Valores razonables si Kitty no informa el tamaño.
+    if ((cell_width <= 0 || cell_height <= 0)); then
+        cell_width=10
+        cell_height=22
+    fi
+
+    printf '%s %s' "$cell_width" "$cell_height"
 }
 
 # ────────────────────────────────────────────────────────────────
@@ -390,11 +461,66 @@ if [[ "$FORCE_RERENDER" == "true" ]]; then
 fi
 
 # ────────────────────────────────────────────────────────────────
+# Tamaño del panel Pokémon (responsive)
+#
+# El panel ocupa todo el ancho de la terminal. Se renderiza al tamaño
+# exacto en píxeles de PANEL_COLUMNS x PANEL_ROWS celdas, así Kitty no lo
+# reescala y no queda espacio vacío debajo.
+#
+# Estos umbrales tienen que coincidir con los de render-pokemon.sh:
+# el diseño mide 450 unidades de alto, necesita 1400 de ancho para
+# mostrar todas las columnas y 1000 para el modo compacto.
+# ────────────────────────────────────────────────────────────────
+
+DESIGN_HEIGHT=450
+FULL_LAYOUT_MIN_WIDTH=1400
+COMPACT_LAYOUT_MIN_WIDTH=1000
+
+TERMINAL_COLUMNS="$(get_terminal_columns)"
+PANEL_COLUMNS="$TERMINAL_COLUMNS"
+
+read -r CELL_WIDTH CELL_HEIGHT <<< "$(get_cell_size "$PANEL_COLUMNS")"
+
+PANEL_PIXEL_WIDTH="$((PANEL_COLUMNS * CELL_WIDTH))"
+
+# Filas máximas que permiten el diseño completo a este ancho.
+FULL_LAYOUT_ROWS="$((
+    PANEL_PIXEL_WIDTH * DESIGN_HEIGHT / (FULL_LAYOUT_MIN_WIDTH * CELL_HEIGHT)
+))"
+
+# Aceptamos achicar hasta un 70 % antes de pasar al modo compacto.
+MINIMUM_FULL_ROWS="$(((POKEMON_PANEL_ROWS * 7 + 9) / 10))"
+
+if ((FULL_LAYOUT_ROWS >= POKEMON_PANEL_ROWS)); then
+    PANEL_ROWS="$POKEMON_PANEL_ROWS"
+elif ((FULL_LAYOUT_ROWS >= MINIMUM_FULL_ROWS)); then
+    PANEL_ROWS="$FULL_LAYOUT_ROWS"
+else
+    PANEL_ROWS="$((
+        PANEL_PIXEL_WIDTH * DESIGN_HEIGHT / (COMPACT_LAYOUT_MIN_WIDTH * CELL_HEIGHT)
+    ))"
+
+    # Nunca más alto que el diseño completo: así el panel no crece
+    # cuando la terminal se achica.
+    if ((PANEL_ROWS > MINIMUM_FULL_ROWS)); then
+        PANEL_ROWS="$MINIMUM_FULL_ROWS"
+    fi
+fi
+
+if ((PANEL_ROWS < 5)); then
+    PANEL_ROWS=5
+fi
+
+PANEL_PIXEL_HEIGHT="$((PANEL_ROWS * CELL_HEIGHT))"
+
+# ────────────────────────────────────────────────────────────────
 # Obtener panel Pokémon
 # ────────────────────────────────────────────────────────────────
 
 PANEL_IMAGE="$(
-    "$RENDER_SCRIPT" "$REQUEST"
+    PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
+        PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
+        "$RENDER_SCRIPT" "$REQUEST"
 )"
 
 if [[ -z "$PANEL_IMAGE" || ! -s "$PANEL_IMAGE" ]]; then
@@ -910,8 +1036,6 @@ MACHINE_VALUE="$(get_machine)"
 # Ajustar tamaños según terminal
 # ────────────────────────────────────────────────────────────────
 
-TERMINAL_COLUMNS="$(get_terminal_columns)"
-
 if ((TERMINAL_COLUMNS > SYSTEM_PANEL_MAX_WIDTH)); then
     CONTENT_WIDTH="$SYSTEM_PANEL_MAX_WIDTH"
 else
@@ -937,16 +1061,16 @@ RIGHT_VALUE_WIDTH="$((RIGHT_COLUMN_WIDTH - RIGHT_LABEL_WIDTH - 2))"
 
 clear
 
-# El protocolo gráfico de Kitty coloca la imagen en una zona fija.
-# Después posicionamos el cursor debajo del panel.
+# El PNG ya tiene el tamaño exacto de la zona, así que ocupa todo el
+# ancho sin reescalar. Después el cursor va justo debajo del panel.
 kitten icat \
     --transfer-mode file \
     --align left \
     --scale-up \
-    --place "${CONTENT_WIDTH}x${POKEMON_PANEL_ROWS}@0x0" \
+    --place "${PANEL_COLUMNS}x${PANEL_ROWS}@0x0" \
     "$PANEL_IMAGE"
 
-tput cup "$POKEMON_PANEL_ROWS" 0
+tput cup "$PANEL_ROWS" 0
 
 if [[ "$SHOW_SYSTEM_INFO" != "true" ]]; then
     exit 0

@@ -73,11 +73,17 @@ Variables opcionales:
   POKEMON_DIR
       Carpeta que contiene las imágenes.
 
-  POKEMON_PANEL_WIDTH
-      Ancho del panel. Predeterminado: 1580.
+  PF_RENDER_WIDTH / PF_RENDER_HEIGHT
+      Tamaño exacto del panel en píxeles. random-fastfetch.sh los
+      calcula a partir del tamaño real de la terminal.
 
-  POKEMON_PANEL_HEIGHT
-      Alto del panel. Predeterminado: 470.
+  POKEMON_PANEL_WIDTH / POKEMON_PANEL_HEIGHT
+      Tamaño usado cuando el renderer se ejecuta solo.
+      Predeterminado: 1580x450.
+
+El diseño es responsive: el contenido se redistribuye según la
+proporción del panel. En paneles angostos se oculta la columna de
+información (habilidades, región, etc.).
 EOF
 }
 
@@ -112,8 +118,19 @@ TEMP_DIR="$CACHE_ROOT/render-temp"
 
 POKEMON_DIR="${POKEMON_DIR:-$HOME/.local/share/pokimg/images}"
 
-PANEL_WIDTH="${POKEMON_PANEL_WIDTH:-1580}"
-PANEL_HEIGHT="${POKEMON_PANEL_HEIGHT:-470}"
+# Tamaño real en píxeles. random-fastfetch.sh lo calcula a partir de la
+# terminal y lo pasa con PF_RENDER_*; se usan variables propias para que
+# el archivo de configuración (que se carga arriba) no las pise.
+PANEL_WIDTH="${PF_RENDER_WIDTH:-${POKEMON_PANEL_WIDTH:-1580}}"
+PANEL_HEIGHT="${PF_RENDER_HEIGHT:-${POKEMON_PANEL_HEIGHT:-450}}"
+
+if ! [[ "$PANEL_WIDTH" =~ ^[0-9]+$ ]] || ((PANEL_WIDTH < 200)); then
+    PANEL_WIDTH=1580
+fi
+
+if ! [[ "$PANEL_HEIGHT" =~ ^[0-9]+$ ]] || ((PANEL_HEIGHT < 60)); then
+    PANEL_HEIGHT=450
+fi
 
 mkdir -p "$PANELS_DIR"
 mkdir -p "$TEMP_DIR"
@@ -312,6 +329,22 @@ type_icon() {
     esac
 }
 
+clamp() {
+    local VALUE="$1"
+    local MINIMUM="$2"
+    local MAXIMUM="$3"
+
+    if ((VALUE < MINIMUM)); then
+        VALUE="$MINIMUM"
+    fi
+
+    if ((VALUE > MAXIMUM)); then
+        VALUE="$MAXIMUM"
+    fi
+
+    printf '%s' "$VALUE"
+}
+
 generation_roman() {
     case "$1" in
         1) printf 'I' ;;
@@ -329,7 +362,7 @@ generation_roman() {
 
 calculate_bar_width() {
     local VALUE="$1"
-    local MAX_WIDTH=285
+    local MAX_WIDTH="${2:-285}"
     local MAX_STAT=180
     local RESULT
 
@@ -570,11 +603,113 @@ else
     SECONDARY_TYPE_ICON=""
 fi
 
+# ────────────────────────────────────────────────────────────────
+# Layout responsive
+#
+# Todo se dibuja en "unidades de diseño" con una altura fija de 450.
+# El ancho en unidades sale de la proporción real del panel, así que en
+# una terminal más ancha hay más unidades horizontales y el contenido se
+# redistribuye en lugar de estirarse o dejar huecos.
+# ────────────────────────────────────────────────────────────────
+
+DESIGN_HEIGHT=450
+DESIGN_WIDTH="$((PANEL_WIDTH * DESIGN_HEIGHT / PANEL_HEIGHT))"
+
+# Debajo de este ancho no entra bien la columna de información.
+FULL_LAYOUT_MIN_WIDTH=1400
+
+MARGIN=20
+
+# Ancho aproximado de un carácter de JetBrains Mono a 21 unidades
+# (0.6 em), multiplicado por 10 para trabajar con enteros.
+CHAR_WIDTH_X10=126
+
+if ((DESIGN_WIDTH >= FULL_LAYOUT_MIN_WIDTH)); then
+    SHOW_INFO_COLUMN=true
+    SPRITE_WIDTH="$(clamp "$((DESIGN_WIDTH * 26 / 100))" 340 465)"
+else
+    SHOW_INFO_COLUMN=false
+    SPRITE_WIDTH="$(clamp "$((DESIGN_WIDTH * 32 / 100))" 280 465)"
+fi
+
+SPRITE_HEIGHT=415
+SPRITE_X="$MARGIN"
+SPRITE_Y=18
+
+STATS_X="$((SPRITE_X + SPRITE_WIDTH + 35))"
+
+if [[ "$SHOW_INFO_COLUMN" == "true" ]]; then
+    # La columna de información mide lo justo para su texto más largo
+    # (hasta 34 caracteres) y queda pegada al borde derecho. Las
+    # estadísticas ocupan todo el espacio del medio.
+    LONGEST_INFO_VALUE=0
+
+    for INFO_TEXT in "$ABILITIES" "$REGION" "$CATEGORY" "${HEIGHT} m" "${WEIGHT} kg"; do
+        if ((${#INFO_TEXT} > LONGEST_INFO_VALUE)); then
+            LONGEST_INFO_VALUE="${#INFO_TEXT}"
+        fi
+    done
+
+    LONGEST_INFO_VALUE="$(clamp "$LONGEST_INFO_VALUE" 12 34)"
+
+    # 200 = ícono + etiqueta; +1 carácter de aire.
+    WANTED_INFO_WIDTH="$((200 + (LONGEST_INFO_VALUE + 1) * CHAR_WIDTH_X10 / 10))"
+
+    # 95 = espacio a ambos lados del separador vertical.
+    AVAILABLE_WIDTH="$((DESIGN_WIDTH - STATS_X - MARGIN - 95))"
+    MAXIMUM_INFO_WIDTH="$((AVAILABLE_WIDTH - 490))"
+
+    INFO_WIDTH="$WANTED_INFO_WIDTH"
+
+    if ((INFO_WIDTH > MAXIMUM_INFO_WIDTH)); then
+        INFO_WIDTH="$MAXIMUM_INFO_WIDTH"
+    fi
+
+    STATS_WIDTH="$((AVAILABLE_WIDTH - INFO_WIDTH))"
+
+    # En terminales muy anchas no estiramos las barras sin límite:
+    # el espacio sobrante se reparte alrededor del separador.
+    EXTRA_GAP=0
+
+    if ((STATS_WIDTH > 1100)); then
+        EXTRA_GAP="$(((STATS_WIDTH - 1100) / 2))"
+        STATS_WIDTH=1100
+    fi
+
+    SEPARATOR_X="$((STATS_X + STATS_WIDTH + 50 + EXTRA_GAP))"
+    INFO_X="$((DESIGN_WIDTH - MARGIN - INFO_WIDTH))"
+    INFO_LABEL_X="$((INFO_X + 40))"
+    INFO_VALUE_X="$((INFO_X + 200))"
+    INFO_VALUE_CHARS="$(((INFO_WIDTH - 200) * 10 / CHAR_WIDTH_X10))"
+
+    if ((INFO_VALUE_CHARS < 4)); then
+        INFO_VALUE_CHARS=4
+    fi
+else
+    STATS_WIDTH="$(clamp "$((DESIGN_WIDTH - STATS_X - MARGIN))" 490 1200)"
+    INFO_VALUE_CHARS=18
+fi
+
+# Columnas internas del bloque de estadísticas.
+STAT_ICON_X="$((STATS_X + 95))"
+BAR_X="$((STATS_X + 140))"
+BAR_WIDTH="$((STATS_WIDTH - 140 - 75))"
+STAT_VALUE_X="$((BAR_X + BAR_WIDTH + 25))"
+STATS_END_X="$((STATS_X + STATS_WIDTH))"
+
+NUMBER_X="$((STATS_X + 235))"
+TYPE_BADGE_X="$((STATS_X + 145))"
+TYPE_TEXT_X="$((STATS_X + 160))"
+TYPE_SLASH_X="$((STATS_X + 300))"
+TYPE2_BADGE_X="$((STATS_X + 325))"
+TYPE2_TEXT_X="$((STATS_X + 340))"
+TOTAL_VALUE_X="$((STATS_X + 145))"
+
 # Limitar textos para evitar que se salgan del panel.
 NAME="$(truncate_text "$NAME" 22)"
-ABILITIES="$(truncate_text "$ABILITIES" 32)"
-REGION="$(truncate_text "$REGION" 18)"
-CATEGORY="$(truncate_text "$CATEGORY" 18)"
+ABILITIES="$(truncate_text "$ABILITIES" "$INFO_VALUE_CHARS")"
+REGION="$(truncate_text "$REGION" "$INFO_VALUE_CHARS")"
+CATEGORY="$(truncate_text "$CATEGORY" "$INFO_VALUE_CHARS")"
 
 # Escapar valores antes de insertarlos en SVG.
 SVG_NAME="$(escape_xml "$NAME")"
@@ -684,7 +819,7 @@ IMAGE_MTIME="$(
         printf '0'
 )"
 
-RENDER_VERSION="pokemon-fastfetch-v2-render-4"
+RENDER_VERSION="pokemon-fastfetch-v2-render-6-responsive"
 
 CACHE_HASH="$(
     {
@@ -717,20 +852,19 @@ fi
 # Medidas del diseño
 # ────────────────────────────────────────────────────────────────
 
-SPRITE_X=20
-SPRITE_Y=25
-SPRITE_WIDTH=465
-SPRITE_HEIGHT=415
+# Las posiciones se calculan en la sección "Layout responsive".
+HP_BAR="$(calculate_bar_width "$HP" "$BAR_WIDTH")"
+ATK_BAR="$(calculate_bar_width "$ATK" "$BAR_WIDTH")"
+DEF_BAR="$(calculate_bar_width "$DEF" "$BAR_WIDTH")"
+SPATK_BAR="$(calculate_bar_width "$SPATK" "$BAR_WIDTH")"
+SPDEF_BAR="$(calculate_bar_width "$SPDEF" "$BAR_WIDTH")"
+SPEED_BAR="$(calculate_bar_width "$SPEED" "$BAR_WIDTH")"
 
-STATS_X=520
-RIGHT_COLUMN_X=1110
-
-HP_BAR="$(calculate_bar_width "$HP")"
-ATK_BAR="$(calculate_bar_width "$ATK")"
-DEF_BAR="$(calculate_bar_width "$DEF")"
-SPATK_BAR="$(calculate_bar_width "$SPATK")"
-SPDEF_BAR="$(calculate_bar_width "$SPDEF")"
-SPEED_BAR="$(calculate_bar_width "$SPEED")"
+# Tamaño y posición del sprite en píxeles reales.
+SPRITE_PX_WIDTH="$((SPRITE_WIDTH * PANEL_HEIGHT / DESIGN_HEIGHT))"
+SPRITE_PX_HEIGHT="$((SPRITE_HEIGHT * PANEL_HEIGHT / DESIGN_HEIGHT))"
+SPRITE_PX_X="$((SPRITE_X * PANEL_HEIGHT / DESIGN_HEIGHT))"
+SPRITE_PX_Y="$((SPRITE_Y * PANEL_HEIGHT / DESIGN_HEIGHT))"
 
 SVG_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}.svg"
 SPRITE_FILE="$TEMP_DIR/${SAFE_KEY}-${CACHE_HASH}-sprite.png"
@@ -745,16 +879,9 @@ cat > "$SVG_FILE" <<EOF
     xmlns="http://www.w3.org/2000/svg"
     width="$PANEL_WIDTH"
     height="$PANEL_HEIGHT"
-    viewBox="0 0 $PANEL_WIDTH $PANEL_HEIGHT"
+    viewBox="0 0 $DESIGN_WIDTH $DESIGN_HEIGHT"
+    preserveAspectRatio="xMinYMin meet"
 >
-    <rect
-        x="0"
-        y="0"
-        width="$PANEL_WIDTH"
-        height="$PANEL_HEIGHT"
-        fill="none"
-    />
-
     <style>
         .text {
             font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
@@ -788,31 +915,14 @@ cat > "$SVG_FILE" <<EOF
     </style>
 
     <!-- Nombre y número -->
-    <text
-        x="$STATS_X"
-        y="55"
-        class="text"
-        font-size="31"
-        font-weight="700"
-    >$SVG_NAME</text>
-
-    <text
-        x="755"
-        y="55"
-        class="muted"
-        font-size="25"
-    >#$NUMBER</text>
+    <text x="$STATS_X" y="55" class="text" font-size="31" font-weight="700">$SVG_NAME</text>
+    <text x="$NUMBER_X" y="55" class="muted" font-size="25">#$NUMBER</text>
 
     <!-- Tipo -->
-    <text
-        x="$STATS_X"
-        y="98"
-        class="muted"
-        font-size="22"
-    >Tipo</text>
+    <text x="$STATS_X" y="98" class="muted" font-size="22">Tipo</text>
 
     <rect
-        x="665"
+        x="$TYPE_BADGE_X"
         y="68"
         width="145"
         height="39"
@@ -823,7 +933,7 @@ cat > "$SVG_FILE" <<EOF
     />
 
     <text
-        x="680"
+        x="$TYPE_TEXT_X"
         y="95"
         font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
         font-size="21"
@@ -834,15 +944,10 @@ EOF
 
 if [[ -n "$SECONDARY_TYPE" ]]; then
     cat >> "$SVG_FILE" <<EOF
-    <text
-        x="820"
-        y="96"
-        class="muted"
-        font-size="23"
-    >/</text>
+    <text x="$TYPE_SLASH_X" y="96" class="muted" font-size="23">/</text>
 
     <rect
-        x="845"
+        x="$TYPE2_BADGE_X"
         y="68"
         width="165"
         height="39"
@@ -853,7 +958,7 @@ if [[ -n "$SECONDARY_TYPE" ]]; then
     />
 
     <text
-        x="860"
+        x="$TYPE2_TEXT_X"
         y="95"
         font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
         font-size="21"
@@ -863,160 +968,93 @@ if [[ -n "$SECONDARY_TYPE" ]]; then
 EOF
 fi
 
+# Filas de estadísticas: etiqueta, ícono, color, valor y ancho de barra.
+STAT_ROWS=(
+    "HP|♥|#FF575F|$HP|$HP_BAR"
+    "ATK|×|#FF922B|$ATK|$ATK_BAR"
+    "DEF|●|#F4EA68|$DEF|$DEF_BAR"
+    "SPATK|★|#B477ED|$SPATK|$SPATK_BAR"
+    "SPDEF|◆|#51DA7B|$SPDEF|$SPDEF_BAR"
+    "SPD|↦|#64CFE4|$SPEED|$SPEED_BAR"
+)
+
+printf '\n    <!-- Estadísticas -->\n' >> "$SVG_FILE"
+
+STAT_INDEX=0
+
+for STAT_ROW in "${STAT_ROWS[@]}"; do
+    IFS='|' read -r STAT_LABEL STAT_ICON STAT_COLOR STAT_VALUE STAT_BAR <<< "$STAT_ROW"
+
+    TEXT_Y="$((151 + STAT_INDEX * 43))"
+    BAR_Y="$((131 + STAT_INDEX * 43))"
+
+    cat >> "$SVG_FILE" <<EOF
+    <text x="$STATS_X" y="$TEXT_Y" class="label" font-size="21">$STAT_LABEL</text>
+    <text x="$STAT_ICON_X" y="$TEXT_Y" class="text" font-size="20">$STAT_ICON</text>
+    <rect x="$BAR_X" y="$BAR_Y" width="$BAR_WIDTH" height="23" rx="2" class="bar-background" />
+    <rect x="$BAR_X" y="$BAR_Y" width="$STAT_BAR" height="23" rx="2" fill="$STAT_COLOR" />
+    <text x="$STAT_VALUE_X" y="$TEXT_Y" class="value" font-size="21">$STAT_VALUE</text>
+EOF
+
+    STAT_INDEX=$((STAT_INDEX + 1))
+done
+
 cat >> "$SVG_FILE" <<EOF
-    <!-- Estadísticas -->
-    <text x="$STATS_X" y="151" class="label" font-size="21">HP</text>
-    <text x="$STATS_X" y="194" class="label" font-size="21">ATK</text>
-    <text x="$STATS_X" y="237" class="label" font-size="21">DEF</text>
-    <text x="$STATS_X" y="280" class="label" font-size="21">SPATK</text>
-    <text x="$STATS_X" y="323" class="label" font-size="21">SPDEF</text>
-    <text x="$STATS_X" y="366" class="label" font-size="21">SPD</text>
 
-    <text x="615" y="151" class="text" font-size="20">♥</text>
-    <text x="615" y="194" class="text" font-size="20">×</text>
-    <text x="615" y="237" class="text" font-size="20">●</text>
-    <text x="615" y="280" class="text" font-size="20">★</text>
-    <text x="615" y="323" class="text" font-size="20">◆</text>
-    <text x="615" y="366" class="text" font-size="20">↦</text>
+    <line x1="$STATS_X" y1="390" x2="$STATS_END_X" y2="390" class="divider" />
 
-    <!-- Fondos de barra -->
-    <rect x="660" y="131" width="285" height="23" rx="2" class="bar-background" />
-    <rect x="660" y="174" width="285" height="23" rx="2" class="bar-background" />
-    <rect x="660" y="217" width="285" height="23" rx="2" class="bar-background" />
-    <rect x="660" y="260" width="285" height="23" rx="2" class="bar-background" />
-    <rect x="660" y="303" width="285" height="23" rx="2" class="bar-background" />
-    <rect x="660" y="346" width="285" height="23" rx="2" class="bar-background" />
+    <text x="$STATS_X" y="428" class="label" font-size="23">TOTAL</text>
+    <text x="$TOTAL_VALUE_X" y="428" class="value" font-size="23">$TOTAL</text>
+EOF
 
-    <!-- Barras -->
-    <rect x="660" y="131" width="$HP_BAR" height="23" rx="2" fill="#FF575F" />
-    <rect x="660" y="174" width="$ATK_BAR" height="23" rx="2" fill="#FF922B" />
-    <rect x="660" y="217" width="$DEF_BAR" height="23" rx="2" fill="#F4EA68" />
-    <rect x="660" y="260" width="$SPATK_BAR" height="23" rx="2" fill="#B477ED" />
-    <rect x="660" y="303" width="$SPDEF_BAR" height="23" rx="2" fill="#51DA7B" />
-    <rect x="660" y="346" width="$SPEED_BAR" height="23" rx="2" fill="#64CFE4" />
+# ────────────────────────────────────────────────────────────────
+# Columna de información (solo si hay espacio)
+# ────────────────────────────────────────────────────────────────
 
-    <!-- Valores -->
-    <text x="975" y="151" class="value" font-size="21">$HP</text>
-    <text x="975" y="194" class="value" font-size="21">$ATK</text>
-    <text x="975" y="237" class="value" font-size="21">$DEF</text>
-    <text x="975" y="280" class="value" font-size="21">$SPATK</text>
-    <text x="975" y="323" class="value" font-size="21">$SPDEF</text>
-    <text x="975" y="366" class="value" font-size="21">$SPEED</text>
+if [[ "$SHOW_INFO_COLUMN" == "true" ]]; then
+    INFO_ROWS=(
+        "󰓎|#946BFF|Habilidades|$SVG_ABILITIES"
+        "󰍎|#82DA42|Región|$SVG_REGION"
+        "Ⅲ|#F5DF32|Generación|$GENERATION_ROMAN"
+        "◉|#FF4F55|Categoría|$SVG_CATEGORY"
+        "󰦪|#36BFF2|Altura|${HEIGHT} m"
+        "󰔏|#A16BF5|Peso|${WEIGHT} kg"
+    )
 
-    <line
-        x1="$STATS_X"
-        y1="390"
-        x2="1015"
-        y2="390"
-        class="divider"
-    />
-
-    <text
-        x="$STATS_X"
-        y="428"
-        class="label"
-        font-size="23"
-    >TOTAL</text>
-
-    <text
-        x="665"
-        y="428"
-        class="value"
-        font-size="23"
-    >$TOTAL</text>
+    cat >> "$SVG_FILE" <<EOF
 
     <!-- Separador columna derecha -->
-    <line
-        x1="1065"
-        y1="72"
-        x2="1065"
-        y2="420"
-        class="divider"
-    />
+    <line x1="$SEPARATOR_X" y1="72" x2="$SEPARATOR_X" y2="420" class="divider" />
 
     <!-- Información derecha -->
-    <text
-        x="$RIGHT_COLUMN_X"
-        y="122"
-        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-        font-size="22"
-        font-weight="700"
-        fill="#946BFF"
-    >󰓎</text>
-
-    <text x="1150" y="122" class="muted" font-size="21" font-weight="700">Habilidades</text>
-    <text x="1355" y="122" class="value" font-size="21">$SVG_ABILITIES</text>
-
-    <text
-        x="$RIGHT_COLUMN_X"
-        y="172"
-        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-        font-size="22"
-        font-weight="700"
-        fill="#82DA42"
-    >󰍎</text>
-
-    <text x="1150" y="172" class="muted" font-size="21" font-weight="700">Región</text>
-    <text x="1355" y="172" class="value" font-size="21">$SVG_REGION</text>
-
-    <text
-        x="$RIGHT_COLUMN_X"
-        y="222"
-        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-        font-size="22"
-        font-weight="700"
-        fill="#F5DF32"
-    >Ⅲ</text>
-
-    <text x="1150" y="222" class="muted" font-size="21" font-weight="700">Generación</text>
-    <text x="1355" y="222" class="value" font-size="21">$GENERATION_ROMAN</text>
-
-    <text
-        x="$RIGHT_COLUMN_X"
-        y="272"
-        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-        font-size="22"
-        font-weight="700"
-        fill="#FF4F55"
-    >◉</text>
-
-    <text x="1150" y="272" class="muted" font-size="21" font-weight="700">Categoría</text>
-    <text x="1355" y="272" class="value" font-size="21">$SVG_CATEGORY</text>
-
-    <text
-        x="$RIGHT_COLUMN_X"
-        y="322"
-        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-        font-size="22"
-        font-weight="700"
-        fill="#36BFF2"
-    >󰦪</text>
-
-    <text x="1150" y="322" class="muted" font-size="21" font-weight="700">Altura</text>
-    <text x="1355" y="322" class="value" font-size="21">${HEIGHT} m</text>
-
-    <text
-        x="$RIGHT_COLUMN_X"
-        y="372"
-        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
-        font-size="22"
-        font-weight="700"
-        fill="#A16BF5"
-    >󰔏</text>
-
-    <text x="1150" y="372" class="muted" font-size="21" font-weight="700">Peso</text>
-    <text x="1355" y="372" class="value" font-size="21">${WEIGHT} kg</text>
-
-    <!-- Línea inferior -->
-    <line
-        x1="20"
-        y1="452"
-        x2="$((PANEL_WIDTH - 20))"
-        y2="452"
-        class="divider"
-    />
-</svg>
 EOF
+
+    INFO_INDEX=0
+
+    for INFO_ROW in "${INFO_ROWS[@]}"; do
+        IFS='|' read -r INFO_ICON INFO_COLOR INFO_LABEL INFO_VALUE <<< "$INFO_ROW"
+
+        INFO_Y="$((122 + INFO_INDEX * 50))"
+
+        cat >> "$SVG_FILE" <<EOF
+    <text
+        x="$INFO_X"
+        y="$INFO_Y"
+        font-family="JetBrainsMono Nerd Font, JetBrains Mono, monospace"
+        font-size="22"
+        font-weight="700"
+        fill="$INFO_COLOR"
+    >$INFO_ICON</text>
+    <text x="$INFO_LABEL_X" y="$INFO_Y" class="muted" font-size="21" font-weight="700">$INFO_LABEL</text>
+    <text x="$INFO_VALUE_X" y="$INFO_Y" class="value" font-size="21">$INFO_VALUE</text>
+EOF
+
+        INFO_INDEX=$((INFO_INDEX + 1))
+    done
+fi
+
+# Sin línea inferior: el divisor del panel del sistema queda justo debajo.
+printf '</svg>\n' >> "$SVG_FILE"
 
 # ────────────────────────────────────────────────────────────────
 # Renderizar base SVG
@@ -1040,9 +1078,9 @@ magick \
     -background none \
     -alpha on \
     -filter point \
-    -resize "${SPRITE_WIDTH}x${SPRITE_HEIGHT}>" \
+    -resize "${SPRITE_PX_WIDTH}x${SPRITE_PX_HEIGHT}>" \
     -gravity center \
-    -extent "${SPRITE_WIDTH}x${SPRITE_HEIGHT}" \
+    -extent "${SPRITE_PX_WIDTH}x${SPRITE_PX_HEIGHT}" \
     "$SPRITE_FILE"
 
 # ────────────────────────────────────────────────────────────────
@@ -1052,7 +1090,7 @@ magick \
 magick \
     "$BASE_FILE" \
     "$SPRITE_FILE" \
-    -geometry "+${SPRITE_X}+${SPRITE_Y}" \
+    -geometry "+${SPRITE_PX_X}+${SPRITE_PX_Y}" \
     -composite \
     -strip \
     "$FINAL_PANEL"

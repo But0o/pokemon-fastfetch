@@ -360,8 +360,8 @@ write_config() {
     local temporary_file="$CONFIG_DIR/config.tmp"
 
     local panel_width="1580"
-    local panel_height="470"
-    local panel_rows="22"
+    local panel_height="450"
+    local panel_rows="20"
     local system_max_width="150"
     local column_gap="6"
     local show_system_info="true"
@@ -434,8 +434,8 @@ write_config() {
         )"
 
         panel_width="${panel_width:-1580}"
-        panel_height="${panel_height:-470}"
-        panel_rows="${panel_rows:-22}"
+        panel_height="${panel_height:-450}"
+        panel_rows="${panel_rows:-20}"
         system_max_width="${system_max_width:-150}"
         column_gap="${column_gap:-6}"
         show_system_info="${show_system_info:-true}"

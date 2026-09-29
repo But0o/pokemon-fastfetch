@@ -83,8 +83,12 @@ if ! [[ "$POKEMON_PANEL_ROWS" =~ ^[0-9]+$ ]] || ((POKEMON_PANEL_ROWS < 5)); then
     POKEMON_PANEL_ROWS=20
 fi
 
-# Ancho máximo del contenido inferior.
-SYSTEM_PANEL_MAX_WIDTH="${SYSTEM_PANEL_MAX_WIDTH:-150}"
+# Ancho máximo del contenido inferior. 0 = todo el ancho de la terminal.
+SYSTEM_PANEL_MAX_WIDTH="${SYSTEM_PANEL_MAX_WIDTH:-0}"
+
+if ! [[ "$SYSTEM_PANEL_MAX_WIDTH" =~ ^[0-9]+$ ]]; then
+    SYSTEM_PANEL_MAX_WIDTH=0
+fi
 
 # Espacio entre las dos columnas inferiores.
 COLUMN_GAP="${COLUMN_GAP:-6}"
@@ -1036,7 +1040,7 @@ MACHINE_VALUE="$(get_machine)"
 # Ajustar tamaños según terminal
 # ────────────────────────────────────────────────────────────────
 
-if ((TERMINAL_COLUMNS > SYSTEM_PANEL_MAX_WIDTH)); then
+if ((SYSTEM_PANEL_MAX_WIDTH > 0 && TERMINAL_COLUMNS > SYSTEM_PANEL_MAX_WIDTH)); then
     CONTENT_WIDTH="$SYSTEM_PANEL_MAX_WIDTH"
 else
     CONTENT_WIDTH="$TERMINAL_COLUMNS"
@@ -1046,14 +1050,61 @@ if ((CONTENT_WIDTH < 90)); then
     CONTENT_WIDTH=90
 fi
 
-LEFT_COLUMN_WIDTH="$(((CONTENT_WIDTH - COLUMN_GAP - 1) / 2))"
-RIGHT_COLUMN_WIDTH="$((CONTENT_WIDTH - LEFT_COLUMN_WIDTH - COLUMN_GAP - 1))"
+# Ícono + espacio + etiqueta de 10 + espacio.
+LABEL_WIDTH=13
 
-LEFT_LABEL_WIDTH=13
-RIGHT_LABEL_WIDTH=13
+max_length() {
+    local maximum=0
+    local value=""
 
-LEFT_VALUE_WIDTH="$((LEFT_COLUMN_WIDTH - LEFT_LABEL_WIDTH - 2))"
-RIGHT_VALUE_WIDTH="$((RIGHT_COLUMN_WIDTH - RIGHT_LABEL_WIDTH - 2))"
+    for value in "$@"; do
+        if ((${#value} > maximum)); then
+            maximum="${#value}"
+        fi
+    done
+
+    printf '%s' "$maximum"
+}
+
+LEFT_MAX_LENGTH="$(
+    max_length \
+        "$OS_VALUE" "$KERNEL_VALUE" "$UPTIME_VALUE" "$PACKAGES_VALUE" \
+        "$SHELL_VALUE" "$DISPLAY_VALUE" "$WM_VALUE" "$TERMINAL_VALUE"
+)"
+
+RIGHT_MAX_LENGTH="$(
+    max_length \
+        "$CPU_VALUE" "$GPU_VALUE" "$MEMORY_VALUE" "$DISK_VALUE" \
+        "$NETWORK_VALUE" "$OS_AGE_VALUE" "$MACHINE_VALUE" "$FONT_VALUE"
+)"
+
+# El separador va siempre en el centro de la terminal y cada columna
+# mide lo justo para su texto más largo, a COLUMN_GAP del separador.
+# Así el bloque completo queda centrado alrededor de la barra.
+CENTER_COLUMN="$((CONTENT_WIDTH / 2))"
+
+LEFT_BLOCK_WIDTH="$((LABEL_WIDTH + LEFT_MAX_LENGTH + COLUMN_GAP))"
+RIGHT_BLOCK_WIDTH="$((COLUMN_GAP + LABEL_WIDTH + RIGHT_MAX_LENGTH))"
+
+if ((LEFT_BLOCK_WIDTH <= CENTER_COLUMN)) &&
+    ((RIGHT_BLOCK_WIDTH <= CONTENT_WIDTH - CENTER_COLUMN - 1)); then
+    LEFT_INDENT="$((CENTER_COLUMN - LEFT_BLOCK_WIDTH))"
+    LEFT_VALUE_WIDTH="$LEFT_MAX_LENGTH"
+    RIGHT_VALUE_WIDTH="$RIGHT_MAX_LENGTH"
+    LEFT_PAD_WIDTH="$((LEFT_MAX_LENGTH + COLUMN_GAP))"
+    SEPARATOR_GAP="$COLUMN_GAP"
+else
+    # No entra: dos mitades iguales y se recortan los textos largos.
+    LEFT_INDENT=0
+    LEFT_VALUE_WIDTH="$((
+        (CONTENT_WIDTH - 1 - 2 * LABEL_WIDTH - 2 * COLUMN_GAP) / 2
+    ))"
+    RIGHT_VALUE_WIDTH="$((
+        CONTENT_WIDTH - 1 - 2 * LABEL_WIDTH - 2 * COLUMN_GAP - LEFT_VALUE_WIDTH
+    ))"
+    LEFT_PAD_WIDTH="$((LEFT_VALUE_WIDTH + COLUMN_GAP))"
+    SEPARATOR_GAP="$COLUMN_GAP"
+fi
 
 # ────────────────────────────────────────────────────────────────
 # Mostrar panel Pokémon
@@ -1100,19 +1151,23 @@ print_two_columns() {
     left_value="$(trim_text "$left_value" "$LEFT_VALUE_WIDTH")"
     right_value="$(trim_text "$right_value" "$RIGHT_VALUE_WIDTH")"
 
+    printf '%*s' "$LEFT_INDENT" ''
+
     printf '%s%s %-10s%s ' \
         "$left_color" \
         "$left_icon" \
         "$left_label" \
         "$RESET"
 
-    printf '%-*s' \
-        "$LEFT_VALUE_WIDTH" \
-        "$left_value"
+    # Relleno manual: printf de Bash cuenta bytes, no caracteres, y
+    # desalinea textos con tildes o símbolos UTF-8.
+    printf '%s%*s' \
+        "$left_value" \
+        "$((LEFT_PAD_WIDTH - ${#left_value}))" ''
 
     printf '%s│%s' "$DARK_GRAY" "$RESET"
 
-    printf '%*s' "$COLUMN_GAP" ''
+    printf '%*s' "$SEPARATOR_GAP" ''
 
     printf '%s%s %-10s%s ' \
         "$right_color" \

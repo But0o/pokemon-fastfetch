@@ -140,66 +140,98 @@ MAGENTA=$'\033[38;2;224;84;214m'
 # ────────────────────────────────────────────────────────────────
 
 show_help() {
-    cat <<EOF
-Pokémon Fastfetch v${APP_VERSION}
+    local bold=""
+    local title=""
+    local command_color=""
+    local text=""
+    local muted=""
+    local shiny=""
+    local reset=""
 
-Uso:
+    # Colores solo en una terminal (no al redirigir a un archivo o a less).
+    if [[ -t 1 ]]; then
+        bold=$'\033[1m'
+        title="$bold$CYAN"
+        command_color="$WHITE"
+        text="$GRAY"
+        muted="$DARK_GRAY"
+        shiny=$'\033[38;2;245;197;66m'
+        reset="$RESET"
+    fi
 
-  random-fastfetch.sh
-      Selecciona un Pokémon aleatorio.
+    section() {
+        printf '\n%s%s%s\n' "$title" "$1" "$reset"
+    }
 
-  random-fastfetch.sh charizard
-      Muestra un Pokémon por nombre.
+    command_line() {
+        printf '  %s%-32s%s %s%s%s\n' \
+            "$command_color" "$1" "$reset" "$text" "$2" "$reset"
+    }
 
-  random-fastfetch.sh 6
-      Muestra un Pokémon por número de Pokédex.
+    # Modo configurado para las terminales nuevas.
+    local fixed_value=""
+    local fixed_flag=""
+    local current_mode="aleatorio"
 
-  random-fastfetch.sh --random
-      Selecciona un Pokémon aleatorio.
+    if [[ -s "$FIXED_POKEMON_FILE" ]]; then
+        read -r fixed_value fixed_flag < "$FIXED_POKEMON_FILE" || true
+    fi
 
-  random-fastfetch.sh --rerender charizard
-      Borra el panel cacheado y vuelve a generarlo.
+    if [[ "$fixed_value" == "$SHINY_MODE_MARKER" ]]; then
+        current_mode="solo shiny, al azar"
+    elif [[ -n "$fixed_value" && "$fixed_flag" == "shiny" ]]; then
+        current_mode="fijo, $fixed_value shiny ✦"
+    elif [[ -n "$fixed_value" ]]; then
+        current_mode="fijo, $fixed_value"
+    fi
 
-  random-fastfetch.sh --set pikachu
-      Fija un Pokémon para todas las terminales nuevas.
+    local shiny_chance="desactivados"
 
-  random-fastfetch.sh --random-mode
-      Vuelve al modo aleatorio (con probabilidad de shiny).
+    if ((POKEMON_SHINY_RATE > 0)); then
+        shiny_chance="1 en $POKEMON_SHINY_RATE"
+    fi
 
-Shiny:
+    printf '%sPokémon Fastfetch%s %sv%s%s\n' "$bold" "$reset" "$muted" "$APP_VERSION" "$reset"
+    printf '%sTodos los comandos también funcionan con "fastfetch" en lugar de "pokefetch".%s\n' \
+        "$muted" "$reset"
 
-  random-fastfetch.sh --shiny
-      Un Pokémon shiny al azar, solo esta vez.
+    section "Mostrar un Pokémon"
+    command_line "pokefetch" "Según el modo actual (ver abajo)"
+    command_line "pokefetch pikachu" "Por nombre"
+    command_line "pokefetch 25" "Por número de Pokédex"
+    command_line "pokefetch --random" "Uno al azar, solo esta vez"
 
-  random-fastfetch.sh --shiny pikachu
-      Un Pokémon shiny puntual, solo esta vez.
+    section "Shiny ${shiny}✦${reset}"
+    command_line "pokefetch --shiny" "Un shiny al azar, solo esta vez"
+    command_line "pokefetch --shiny pikachu" "Un shiny puntual, solo esta vez"
 
-  random-fastfetch.sh --set-shiny pikachu
-      Fija un Pokémon shiny para todas las terminales nuevas.
+    section "Qué muestran las terminales nuevas"
+    command_line "pokefetch --random-mode" "Al azar, con probabilidad de shiny"
+    command_line "pokefetch --set pikachu" "Siempre el mismo Pokémon"
+    command_line "pokefetch --set-shiny pikachu" "Siempre el mismo, en shiny"
+    command_line "pokefetch --shiny-mode" "Siempre un shiny al azar"
 
-  random-fastfetch.sh --shiny-mode
-      Cada terminal muestra un Pokémon shiny al azar.
+    section "Mantenimiento"
+    command_line "pokefetch --rerender pikachu" "Vuelve a generar el panel de un Pokémon"
+    command_line "pokefetch --version" "Muestra la versión instalada"
+    command_line "pokefetch comandos" "Muestra esta lista (también --help)"
 
-  En modo aleatorio, cada Pokémon tiene 1 en POKEMON_SHINY_RATE (20 por
-  defecto) de probabilidad de salir shiny. Los sprites shiny se descargan
-  con download-sprites.sh.
+    section "Scripts del repositorio (se corren desde su carpeta)"
+    command_line "./download-sprites.sh" "Descarga sprites faltantes y shiny"
+    command_line "./add-missing-pokemon.sh" "Agrega a la Pokédex los Pokémon nuevos"
+    command_line "./install.sh --yes" "Instala o actualiza"
+    command_line "./uninstall.sh" "Desinstala"
 
-  random-fastfetch.sh --help
-      Muestra esta ayuda.
-
-Ejemplos:
-
-  random-fastfetch.sh pikachu
-  random-fastfetch.sh charizard
-  random-fastfetch.sh rayquaza
-  random-fastfetch.sh 25
-  random-fastfetch.sh 384
-EOF
+    section "Estado actual"
+    printf '  %sModo:%s     %s\n' "$text" "$reset" "$current_mode"
+    printf '  %sShiny:%s    %s %s(POKEMON_SHINY_RATE)%s\n' \
+        "$text" "$reset" "$shiny_chance" "$muted" "$reset"
+    printf '  %sConfig:%s   %s\n' "$text" "$reset" "$CONFIG_FILE"
 }
 
 # Procesar opciones informativas antes de validar dependencias o caché.
 case "${1:-}" in
-    --help|-h)
+    --help|-h|help|ayuda|comandos|--comandos|commands|--commands)
         show_help
         exit 0
         ;;

@@ -533,6 +533,7 @@ fi
 if [[ -z "$SELECTED_IMAGE" && -n "$API_NAME" ]]; then
     SELECTED_IMAGE="$(
         find "$POKEMON_DIR" \
+            -maxdepth 1 \
             -type f \
             \( \
                 -iname "$API_NAME.png" \
@@ -547,6 +548,7 @@ fi
 if [[ -z "$SELECTED_IMAGE" ]]; then
     SELECTED_IMAGE="$(
         find "$POKEMON_DIR" \
+            -maxdepth 1 \
             -type f \
             \( \
                 -iname "$POKEMON_KEY.png" \

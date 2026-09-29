@@ -46,6 +46,7 @@ jobs:
           bash -n lib/common.sh
           bash -n tests/run-tests.sh
           bash -n add-missing-pokemon.sh
+          bash -n download-sprites.sh
 
       - name: Run ShellCheck
         run: |
@@ -57,6 +58,7 @@ jobs:
             render-pokemon.sh \
             build-pokedex-cache.sh \
             add-missing-pokemon.sh \
+            download-sprites.sh \
             lib/common.sh \
             tests/run-tests.sh
 

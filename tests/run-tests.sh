@@ -50,6 +50,7 @@ scripts=(
     "$ROOT_DIR/render-pokemon.sh"
     "$ROOT_DIR/build-pokedex-cache.sh"
     "$ROOT_DIR/add-missing-pokemon.sh"
+    "$ROOT_DIR/download-sprites.sh"
     "$ROOT_DIR/lib/common.sh"
 )
 
@@ -69,6 +70,7 @@ required_files=(
     "$ROOT_DIR/CHANGELOG.md"
     "$ROOT_DIR/config/pokedex.json"
     "$ROOT_DIR/add-missing-pokemon.sh"
+    "$ROOT_DIR/download-sprites.sh"
     "$ROOT_DIR/lib/common.sh"
 )
 
@@ -303,6 +305,11 @@ env \
     XDG_CONFIG_HOME="$TEST_HOME/.config" \
     XDG_CACHE_HOME="$TEST_HOME/.cache" \
     "$ROOT_DIR/add-missing-pokemon.sh" --help >/dev/null
+
+env \
+    HOME="$TEST_HOME" \
+    XDG_CONFIG_HOME="$TEST_HOME/.config" \
+    "$ROOT_DIR/download-sprites.sh" --help >/dev/null
 
 printf '  [OK] Ayudas disponibles\n'
 

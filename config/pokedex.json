@@ -29437,5 +29437,3785 @@
       "speed": 95
     },
     "base_experience": 270
+  },
+  "annihilape": {
+    "id": 979,
+    "name": "Annihilape",
+    "api_name": "annihilape",
+    "image": "annihilape.png",
+    "types": [
+      "fighting",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 56,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "vital-spirit",
+      "inner-focus",
+      "defiant"
+    ],
+    "stats": {
+      "hp": 110,
+      "attack": 115,
+      "defense": 80,
+      "special_attack": 50,
+      "special_defense": 90,
+      "speed": 90
+    },
+    "base_experience": 268
+  },
+  "arboliva": {
+    "id": 930,
+    "name": "Arboliva",
+    "api_name": "arboliva",
+    "image": "arboliva.png",
+    "types": [
+      "grass",
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.4,
+    "weight_kg": 48.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "seed-sower",
+      "harvest"
+    ],
+    "stats": {
+      "hp": 78,
+      "attack": 69,
+      "defense": 90,
+      "special_attack": 125,
+      "special_defense": 109,
+      "speed": 39
+    },
+    "base_experience": 255
+  },
+  "archaludon": {
+    "id": 1018,
+    "name": "Archaludon",
+    "api_name": "archaludon",
+    "image": "archaludon.png",
+    "types": [
+      "steel",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2,
+    "weight_kg": 60,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "stamina",
+      "sturdy",
+      "stalwart"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 105,
+      "defense": 130,
+      "special_attack": 125,
+      "special_defense": 65,
+      "speed": 85
+    },
+    "base_experience": 300
+  },
+  "arctibax": {
+    "id": 997,
+    "name": "Arctibax",
+    "api_name": "arctibax",
+    "image": "arctibax.png",
+    "types": [
+      "dragon",
+      "ice"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.8,
+    "weight_kg": 30,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "thermal-exchange",
+      "ice-body"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 95,
+      "defense": 66,
+      "special_attack": 45,
+      "special_defense": 65,
+      "speed": 62
+    },
+    "base_experience": 148
+  },
+  "armarouge": {
+    "id": 936,
+    "name": "Armarouge",
+    "api_name": "armarouge",
+    "image": "armarouge.png",
+    "types": [
+      "fire",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 85,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "flash-fire",
+      "weak-armor"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 60,
+      "defense": 100,
+      "special_attack": 125,
+      "special_defense": 80,
+      "speed": 75
+    },
+    "base_experience": 263
+  },
+  "basculegion": {
+    "id": 902,
+    "name": "Basculegion",
+    "api_name": "basculegion",
+    "image": "basculegion.png",
+    "types": [
+      "water",
+      "ghost"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 3,
+    "weight_kg": 110,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "swift-swim",
+      "adaptability",
+      "mold-breaker"
+    ],
+    "stats": {
+      "hp": 120,
+      "attack": 112,
+      "defense": 65,
+      "special_attack": 80,
+      "special_defense": 75,
+      "speed": 78
+    },
+    "base_experience": 265
+  },
+  "baxcalibur": {
+    "id": 998,
+    "name": "Baxcalibur",
+    "api_name": "baxcalibur",
+    "image": "baxcalibur.png",
+    "types": [
+      "dragon",
+      "ice"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.1,
+    "weight_kg": 210,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "thermal-exchange",
+      "ice-body"
+    ],
+    "stats": {
+      "hp": 115,
+      "attack": 145,
+      "defense": 92,
+      "special_attack": 75,
+      "special_defense": 86,
+      "speed": 87
+    },
+    "base_experience": 300
+  },
+  "bellibolt": {
+    "id": 939,
+    "name": "Bellibolt",
+    "api_name": "bellibolt",
+    "image": "bellibolt.png",
+    "types": [
+      "electric"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 113,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "electromorphosis",
+      "static",
+      "damp"
+    ],
+    "stats": {
+      "hp": 109,
+      "attack": 64,
+      "defense": 91,
+      "special_attack": 103,
+      "special_defense": 83,
+      "speed": 45
+    },
+    "base_experience": 173
+  },
+  "bombirdier": {
+    "id": 962,
+    "name": "Bombirdier",
+    "api_name": "bombirdier",
+    "image": "bombirdier.png",
+    "types": [
+      "flying",
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 42.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "big-pecks",
+      "keen-eye",
+      "rocky-payload"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 103,
+      "defense": 85,
+      "special_attack": 60,
+      "special_defense": 85,
+      "speed": 82
+    },
+    "base_experience": 243
+  },
+  "brambleghast": {
+    "id": 947,
+    "name": "Brambleghast",
+    "api_name": "brambleghast",
+    "image": "brambleghast.png",
+    "types": [
+      "grass",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 6,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "wind-rider",
+      "infiltrator"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 115,
+      "defense": 70,
+      "special_attack": 80,
+      "special_defense": 70,
+      "speed": 90
+    },
+    "base_experience": 168
+  },
+  "bramblin": {
+    "id": 946,
+    "name": "Bramblin",
+    "api_name": "bramblin",
+    "image": "bramblin.png",
+    "types": [
+      "grass",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 0.6,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "wind-rider",
+      "infiltrator"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 65,
+      "defense": 30,
+      "special_attack": 45,
+      "special_defense": 35,
+      "speed": 60
+    },
+    "base_experience": 55
+  },
+  "brute-bonnet": {
+    "id": 986,
+    "name": "Brute Bonnet",
+    "api_name": "brute-bonnet",
+    "image": "brute-bonnet.png",
+    "types": [
+      "grass",
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 21,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 111,
+      "attack": 127,
+      "defense": 99,
+      "special_attack": 79,
+      "special_defense": 99,
+      "speed": 55
+    },
+    "base_experience": 285
+  },
+  "capsakid": {
+    "id": 951,
+    "name": "Capsakid",
+    "api_name": "capsakid",
+    "image": "capsakid.png",
+    "types": [
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 3,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "chlorophyll",
+      "insomnia",
+      "klutz"
+    ],
+    "stats": {
+      "hp": 50,
+      "attack": 62,
+      "defense": 40,
+      "special_attack": 62,
+      "special_defense": 40,
+      "speed": 50
+    },
+    "base_experience": 61
+  },
+  "ceruledge": {
+    "id": 937,
+    "name": "Ceruledge",
+    "api_name": "ceruledge",
+    "image": "ceruledge.png",
+    "types": [
+      "fire",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.6,
+    "weight_kg": 62,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "flash-fire",
+      "weak-armor"
+    ],
+    "stats": {
+      "hp": 75,
+      "attack": 125,
+      "defense": 80,
+      "special_attack": 60,
+      "special_defense": 100,
+      "speed": 85
+    },
+    "base_experience": 263
+  },
+  "cetitan": {
+    "id": 975,
+    "name": "Cetitan",
+    "api_name": "cetitan",
+    "image": "cetitan.png",
+    "types": [
+      "ice"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 4.5,
+    "weight_kg": 700,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "thick-fat",
+      "slush-rush",
+      "sheer-force"
+    ],
+    "stats": {
+      "hp": 170,
+      "attack": 113,
+      "defense": 65,
+      "special_attack": 45,
+      "special_defense": 55,
+      "speed": 73
+    },
+    "base_experience": 182
+  },
+  "cetoddle": {
+    "id": 974,
+    "name": "Cetoddle",
+    "api_name": "cetoddle",
+    "image": "cetoddle.png",
+    "types": [
+      "ice"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 45,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "thick-fat",
+      "snow-cloak",
+      "sheer-force"
+    ],
+    "stats": {
+      "hp": 108,
+      "attack": 68,
+      "defense": 45,
+      "special_attack": 30,
+      "special_defense": 40,
+      "speed": 43
+    },
+    "base_experience": 67
+  },
+  "charcadet": {
+    "id": 935,
+    "name": "Charcadet",
+    "api_name": "charcadet",
+    "image": "charcadet.png",
+    "types": [
+      "fire"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 10.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "flash-fire",
+      "flame-body"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 50,
+      "defense": 40,
+      "special_attack": 50,
+      "special_defense": 40,
+      "speed": 35
+    },
+    "base_experience": 51
+  },
+  "chien-pao": {
+    "id": 1002,
+    "name": "Chien Pao",
+    "api_name": "chien-pao",
+    "image": "chien-pao.png",
+    "types": [
+      "dark",
+      "ice"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.9,
+    "weight_kg": 152.2,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "sword-of-ruin"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 120,
+      "defense": 80,
+      "special_attack": 90,
+      "special_defense": 65,
+      "speed": 135
+    },
+    "base_experience": 285
+  },
+  "chi-yu": {
+    "id": 1004,
+    "name": "Chi Yu",
+    "api_name": "chi-yu",
+    "image": "chi-yu.png",
+    "types": [
+      "dark",
+      "fire"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 4.9,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "beads-of-ruin"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 80,
+      "defense": 80,
+      "special_attack": 135,
+      "special_defense": 120,
+      "speed": 100
+    },
+    "base_experience": 285
+  },
+  "clodsire": {
+    "id": 980,
+    "name": "Clodsire",
+    "api_name": "clodsire",
+    "image": "clodsire.png",
+    "types": [
+      "poison",
+      "ground"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.8,
+    "weight_kg": 223,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "poison-point",
+      "water-absorb",
+      "unaware"
+    ],
+    "stats": {
+      "hp": 130,
+      "attack": 75,
+      "defense": 60,
+      "special_attack": 45,
+      "special_defense": 100,
+      "speed": 20
+    },
+    "base_experience": 151
+  },
+  "crocalor": {
+    "id": 910,
+    "name": "Crocalor",
+    "api_name": "crocalor",
+    "image": "crocalor.png",
+    "types": [
+      "fire"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1,
+    "weight_kg": 30.7,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "blaze",
+      "unaware"
+    ],
+    "stats": {
+      "hp": 81,
+      "attack": 55,
+      "defense": 78,
+      "special_attack": 90,
+      "special_defense": 58,
+      "speed": 49
+    },
+    "base_experience": 144
+  },
+  "cyclizar": {
+    "id": 967,
+    "name": "Cyclizar",
+    "api_name": "cyclizar",
+    "image": "cyclizar.png",
+    "types": [
+      "dragon",
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.6,
+    "weight_kg": 63,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "shed-skin",
+      "regenerator"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 95,
+      "defense": 65,
+      "special_attack": 85,
+      "special_defense": 65,
+      "speed": 121
+    },
+    "base_experience": 175
+  },
+  "dachsbun": {
+    "id": 927,
+    "name": "Dachsbun",
+    "api_name": "dachsbun",
+    "image": "dachsbun.png",
+    "types": [
+      "fairy"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.5,
+    "weight_kg": 14.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "well-baked-body",
+      "aroma-veil"
+    ],
+    "stats": {
+      "hp": 57,
+      "attack": 80,
+      "defense": 115,
+      "special_attack": 50,
+      "special_defense": 80,
+      "speed": 95
+    },
+    "base_experience": 167
+  },
+  "dipplin": {
+    "id": 1011,
+    "name": "Dipplin",
+    "api_name": "dipplin",
+    "image": "dipplin.png",
+    "types": [
+      "grass",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 9.7,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "supersweet-syrup",
+      "gluttony",
+      "sticky-hold"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 80,
+      "defense": 110,
+      "special_attack": 95,
+      "special_defense": 80,
+      "speed": 40
+    },
+    "base_experience": 170
+  },
+  "dolliv": {
+    "id": 929,
+    "name": "Dolliv",
+    "api_name": "dolliv",
+    "image": "dolliv.png",
+    "types": [
+      "grass",
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 11.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "early-bird",
+      "harvest"
+    ],
+    "stats": {
+      "hp": 52,
+      "attack": 53,
+      "defense": 60,
+      "special_attack": 78,
+      "special_defense": 78,
+      "speed": 33
+    },
+    "base_experience": 124
+  },
+  "dondozo": {
+    "id": 977,
+    "name": "Dondozo",
+    "api_name": "dondozo",
+    "image": "dondozo.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 12,
+    "weight_kg": 220,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "unaware",
+      "oblivious",
+      "water-veil"
+    ],
+    "stats": {
+      "hp": 150,
+      "attack": 100,
+      "defense": 115,
+      "special_attack": 65,
+      "special_defense": 65,
+      "speed": 35
+    },
+    "base_experience": 265
+  },
+  "dudunsparce": {
+    "id": 982,
+    "name": "Dudunsparce",
+    "api_name": "dudunsparce",
+    "image": "dudunsparce.png",
+    "types": [
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 3.6,
+    "weight_kg": 39.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "serene-grace",
+      "run-away",
+      "rattled"
+    ],
+    "stats": {
+      "hp": 125,
+      "attack": 100,
+      "defense": 80,
+      "special_attack": 85,
+      "special_defense": 75,
+      "speed": 55
+    },
+    "base_experience": 182
+  },
+  "enamorus": {
+    "id": 905,
+    "name": "Enamorus",
+    "api_name": "enamorus",
+    "image": "enamorus.png",
+    "types": [
+      "fairy",
+      "flying"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.6,
+    "weight_kg": 48,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "cute-charm",
+      "contrary"
+    ],
+    "stats": {
+      "hp": 74,
+      "attack": 115,
+      "defense": 70,
+      "special_attack": 135,
+      "special_defense": 80,
+      "speed": 106
+    },
+    "base_experience": 116
+  },
+  "espathra": {
+    "id": 956,
+    "name": "Espathra",
+    "api_name": "espathra",
+    "image": "espathra.png",
+    "types": [
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.9,
+    "weight_kg": 90,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "opportunist",
+      "frisk",
+      "speed-boost"
+    ],
+    "stats": {
+      "hp": 95,
+      "attack": 60,
+      "defense": 60,
+      "special_attack": 101,
+      "special_defense": 60,
+      "speed": 105
+    },
+    "base_experience": 168
+  },
+  "farigiraf": {
+    "id": 981,
+    "name": "Farigiraf",
+    "api_name": "farigiraf",
+    "image": "farigiraf.png",
+    "types": [
+      "normal",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 3.2,
+    "weight_kg": 160,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "cud-chew",
+      "armor-tail",
+      "sap-sipper"
+    ],
+    "stats": {
+      "hp": 120,
+      "attack": 90,
+      "defense": 70,
+      "special_attack": 110,
+      "special_defense": 70,
+      "speed": 60
+    },
+    "base_experience": 260
+  },
+  "fezandipiti": {
+    "id": 1016,
+    "name": "Fezandipiti",
+    "api_name": "fezandipiti",
+    "image": "fezandipiti.png",
+    "types": [
+      "poison",
+      "fairy"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.4,
+    "weight_kg": 30.1,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "toxic-chain",
+      "technician"
+    ],
+    "stats": {
+      "hp": 88,
+      "attack": 91,
+      "defense": 82,
+      "special_attack": 70,
+      "special_defense": 125,
+      "speed": 99
+    },
+    "base_experience": 278
+  },
+  "fidough": {
+    "id": 926,
+    "name": "Fidough",
+    "api_name": "fidough",
+    "image": "fidough.png",
+    "types": [
+      "fairy"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 10.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "own-tempo",
+      "klutz"
+    ],
+    "stats": {
+      "hp": 37,
+      "attack": 55,
+      "defense": 70,
+      "special_attack": 30,
+      "special_defense": 55,
+      "speed": 65
+    },
+    "base_experience": 62
+  },
+  "finizen": {
+    "id": 963,
+    "name": "Finizen",
+    "api_name": "finizen",
+    "image": "finizen.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.3,
+    "weight_kg": 60.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "water-veil"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 45,
+      "defense": 40,
+      "special_attack": 45,
+      "special_defense": 40,
+      "speed": 75
+    },
+    "base_experience": 63
+  },
+  "flamigo": {
+    "id": 973,
+    "name": "Flamigo",
+    "api_name": "flamigo",
+    "image": "flamigo.png",
+    "types": [
+      "flying",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.6,
+    "weight_kg": 37,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "scrappy",
+      "tangled-feet",
+      "costar"
+    ],
+    "stats": {
+      "hp": 82,
+      "attack": 115,
+      "defense": 74,
+      "special_attack": 75,
+      "special_defense": 64,
+      "speed": 90
+    },
+    "base_experience": 175
+  },
+  "flittle": {
+    "id": 955,
+    "name": "Flittle",
+    "api_name": "flittle",
+    "image": "flittle.png",
+    "types": [
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.2,
+    "weight_kg": 1.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "anticipation",
+      "frisk",
+      "speed-boost"
+    ],
+    "stats": {
+      "hp": 30,
+      "attack": 35,
+      "defense": 30,
+      "special_attack": 55,
+      "special_defense": 30,
+      "speed": 75
+    },
+    "base_experience": 51
+  },
+  "floragato": {
+    "id": 907,
+    "name": "Floragato",
+    "api_name": "floragato",
+    "image": "floragato.png",
+    "types": [
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.9,
+    "weight_kg": 12.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "overgrow",
+      "protean"
+    ],
+    "stats": {
+      "hp": 61,
+      "attack": 80,
+      "defense": 63,
+      "special_attack": 60,
+      "special_defense": 63,
+      "speed": 83
+    },
+    "base_experience": 144
+  },
+  "flutter-mane": {
+    "id": 987,
+    "name": "Flutter Mane",
+    "api_name": "flutter-mane",
+    "image": "flutter-mane.png",
+    "types": [
+      "ghost",
+      "fairy"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.4,
+    "weight_kg": 4,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 55,
+      "defense": 55,
+      "special_attack": 135,
+      "special_defense": 135,
+      "speed": 135
+    },
+    "base_experience": 285
+  },
+  "frigibax": {
+    "id": 996,
+    "name": "Frigibax",
+    "api_name": "frigibax",
+    "image": "frigibax.png",
+    "types": [
+      "dragon",
+      "ice"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.5,
+    "weight_kg": 17,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "thermal-exchange",
+      "ice-body"
+    ],
+    "stats": {
+      "hp": 65,
+      "attack": 75,
+      "defense": 45,
+      "special_attack": 35,
+      "special_defense": 45,
+      "speed": 55
+    },
+    "base_experience": 64
+  },
+  "fuecoco": {
+    "id": 909,
+    "name": "Fuecoco",
+    "api_name": "fuecoco",
+    "image": "fuecoco.png",
+    "types": [
+      "fire"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 9.8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "blaze",
+      "unaware"
+    ],
+    "stats": {
+      "hp": 67,
+      "attack": 45,
+      "defense": 59,
+      "special_attack": 63,
+      "special_defense": 40,
+      "speed": 36
+    },
+    "base_experience": 62
+  },
+  "garganacl": {
+    "id": 934,
+    "name": "Garganacl",
+    "api_name": "garganacl",
+    "image": "garganacl.png",
+    "types": [
+      "rock"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.3,
+    "weight_kg": 240,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "purifying-salt",
+      "sturdy",
+      "clear-body"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 100,
+      "defense": 130,
+      "special_attack": 45,
+      "special_defense": 90,
+      "speed": 35
+    },
+    "base_experience": 250
+  },
+  "gholdengo": {
+    "id": 1000,
+    "name": "Gholdengo",
+    "api_name": "gholdengo",
+    "image": "gholdengo.png",
+    "types": [
+      "steel",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 30,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "good-as-gold"
+    ],
+    "stats": {
+      "hp": 87,
+      "attack": 60,
+      "defense": 95,
+      "special_attack": 133,
+      "special_defense": 91,
+      "speed": 84
+    },
+    "base_experience": 275
+  },
+  "gimmighoul": {
+    "id": 999,
+    "name": "Gimmighoul",
+    "api_name": "gimmighoul",
+    "image": "gimmighoul.png",
+    "types": [
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "rattled"
+    ],
+    "stats": {
+      "hp": 45,
+      "attack": 30,
+      "defense": 70,
+      "special_attack": 75,
+      "special_defense": 70,
+      "speed": 10
+    },
+    "base_experience": 60
+  },
+  "glimmet": {
+    "id": 969,
+    "name": "Glimmet",
+    "api_name": "glimmet",
+    "image": "glimmet.png",
+    "types": [
+      "rock",
+      "poison"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.7,
+    "weight_kg": 8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "toxic-debris",
+      "corrosion"
+    ],
+    "stats": {
+      "hp": 48,
+      "attack": 35,
+      "defense": 42,
+      "special_attack": 105,
+      "special_defense": 60,
+      "speed": 60
+    },
+    "base_experience": 70
+  },
+  "glimmora": {
+    "id": 970,
+    "name": "Glimmora",
+    "api_name": "glimmora",
+    "image": "glimmora.png",
+    "types": [
+      "rock",
+      "poison"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 45,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "toxic-debris",
+      "corrosion"
+    ],
+    "stats": {
+      "hp": 83,
+      "attack": 55,
+      "defense": 90,
+      "special_attack": 130,
+      "special_defense": 81,
+      "speed": 86
+    },
+    "base_experience": 184
+  },
+  "gouging-fire": {
+    "id": 1020,
+    "name": "Gouging Fire",
+    "api_name": "gouging-fire",
+    "image": "gouging-fire.png",
+    "types": [
+      "fire",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 3.5,
+    "weight_kg": 590,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 105,
+      "attack": 115,
+      "defense": 121,
+      "special_attack": 65,
+      "special_defense": 93,
+      "speed": 91
+    },
+    "base_experience": 295
+  },
+  "grafaiai": {
+    "id": 945,
+    "name": "Grafaiai",
+    "api_name": "grafaiai",
+    "image": "grafaiai.png",
+    "types": [
+      "poison",
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.7,
+    "weight_kg": 27.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "unburden",
+      "poison-touch",
+      "prankster"
+    ],
+    "stats": {
+      "hp": 63,
+      "attack": 95,
+      "defense": 65,
+      "special_attack": 80,
+      "special_defense": 72,
+      "speed": 110
+    },
+    "base_experience": 170
+  },
+  "great-tusk": {
+    "id": 984,
+    "name": "Great Tusk",
+    "api_name": "great-tusk",
+    "image": "great-tusk.png",
+    "types": [
+      "ground",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.2,
+    "weight_kg": 320,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 115,
+      "attack": 131,
+      "defense": 131,
+      "special_attack": 53,
+      "special_defense": 53,
+      "speed": 87
+    },
+    "base_experience": 285
+  },
+  "greavard": {
+    "id": 971,
+    "name": "Greavard",
+    "api_name": "greavard",
+    "image": "greavard.png",
+    "types": [
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 35,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "pickup",
+      "fluffy"
+    ],
+    "stats": {
+      "hp": 50,
+      "attack": 61,
+      "defense": 60,
+      "special_attack": 30,
+      "special_defense": 55,
+      "speed": 34
+    },
+    "base_experience": 58
+  },
+  "houndstone": {
+    "id": 972,
+    "name": "Houndstone",
+    "api_name": "houndstone",
+    "image": "houndstone.png",
+    "types": [
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2,
+    "weight_kg": 15,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "sand-rush",
+      "fluffy"
+    ],
+    "stats": {
+      "hp": 72,
+      "attack": 101,
+      "defense": 100,
+      "special_attack": 50,
+      "special_defense": 97,
+      "speed": 68
+    },
+    "base_experience": 171
+  },
+  "hydrapple": {
+    "id": 1019,
+    "name": "Hydrapple",
+    "api_name": "hydrapple",
+    "image": "hydrapple.png",
+    "types": [
+      "grass",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.8,
+    "weight_kg": 93,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "supersweet-syrup",
+      "regenerator",
+      "sticky-hold"
+    ],
+    "stats": {
+      "hp": 106,
+      "attack": 80,
+      "defense": 110,
+      "special_attack": 120,
+      "special_defense": 80,
+      "speed": 44
+    },
+    "base_experience": 270
+  },
+  "iron-boulder": {
+    "id": 1022,
+    "name": "Iron Boulder",
+    "api_name": "iron-boulder",
+    "image": "iron-boulder.png",
+    "types": [
+      "rock",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 162.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 120,
+      "defense": 80,
+      "special_attack": 68,
+      "special_defense": 108,
+      "speed": 124
+    },
+    "base_experience": 295
+  },
+  "iron-bundle": {
+    "id": 991,
+    "name": "Iron Bundle",
+    "api_name": "iron-bundle",
+    "image": "iron-bundle.png",
+    "types": [
+      "ice",
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 11,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 56,
+      "attack": 80,
+      "defense": 114,
+      "special_attack": 124,
+      "special_defense": 60,
+      "speed": 136
+    },
+    "base_experience": 285
+  },
+  "iron-crown": {
+    "id": 1023,
+    "name": "Iron Crown",
+    "api_name": "iron-crown",
+    "image": "iron-crown.png",
+    "types": [
+      "steel",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.6,
+    "weight_kg": 156,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 72,
+      "defense": 100,
+      "special_attack": 122,
+      "special_defense": 108,
+      "speed": 98
+    },
+    "base_experience": 295
+  },
+  "iron-hands": {
+    "id": 992,
+    "name": "Iron Hands",
+    "api_name": "iron-hands",
+    "image": "iron-hands.png",
+    "types": [
+      "fighting",
+      "electric"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.8,
+    "weight_kg": 380.7,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 154,
+      "attack": 140,
+      "defense": 108,
+      "special_attack": 50,
+      "special_defense": 68,
+      "speed": 50
+    },
+    "base_experience": 285
+  },
+  "iron-jugulis": {
+    "id": 993,
+    "name": "Iron Jugulis",
+    "api_name": "iron-jugulis",
+    "image": "iron-jugulis.png",
+    "types": [
+      "dark",
+      "flying"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.3,
+    "weight_kg": 111,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 94,
+      "attack": 80,
+      "defense": 86,
+      "special_attack": 122,
+      "special_defense": 80,
+      "speed": 108
+    },
+    "base_experience": 285
+  },
+  "iron-leaves": {
+    "id": 1010,
+    "name": "Iron Leaves",
+    "api_name": "iron-leaves",
+    "image": "iron-leaves.png",
+    "types": [
+      "grass",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 125,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 130,
+      "defense": 88,
+      "special_attack": 70,
+      "special_defense": 108,
+      "speed": 104
+    },
+    "base_experience": 295
+  },
+  "iron-moth": {
+    "id": 994,
+    "name": "Iron Moth",
+    "api_name": "iron-moth",
+    "image": "iron-moth.png",
+    "types": [
+      "fire",
+      "poison"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 36,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 70,
+      "defense": 60,
+      "special_attack": 140,
+      "special_defense": 110,
+      "speed": 110
+    },
+    "base_experience": 285
+  },
+  "iron-thorns": {
+    "id": 995,
+    "name": "Iron Thorns",
+    "api_name": "iron-thorns",
+    "image": "iron-thorns.png",
+    "types": [
+      "rock",
+      "electric"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.6,
+    "weight_kg": 303,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 134,
+      "defense": 110,
+      "special_attack": 70,
+      "special_defense": 84,
+      "speed": 72
+    },
+    "base_experience": 285
+  },
+  "iron-treads": {
+    "id": 990,
+    "name": "Iron Treads",
+    "api_name": "iron-treads",
+    "image": "iron-treads.png",
+    "types": [
+      "ground",
+      "steel"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.9,
+    "weight_kg": 240,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 112,
+      "defense": 120,
+      "special_attack": 72,
+      "special_defense": 70,
+      "speed": 106
+    },
+    "base_experience": 285
+  },
+  "iron-valiant": {
+    "id": 1006,
+    "name": "Iron Valiant",
+    "api_name": "iron-valiant",
+    "image": "iron-valiant.png",
+    "types": [
+      "fairy",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.4,
+    "weight_kg": 35,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "quark-drive"
+    ],
+    "stats": {
+      "hp": 74,
+      "attack": 130,
+      "defense": 90,
+      "special_attack": 120,
+      "special_defense": 60,
+      "speed": 116
+    },
+    "base_experience": 295
+  },
+  "kilowattrel": {
+    "id": 941,
+    "name": "Kilowattrel",
+    "api_name": "kilowattrel",
+    "image": "kilowattrel.png",
+    "types": [
+      "electric",
+      "flying"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.4,
+    "weight_kg": 38.6,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "wind-power",
+      "volt-absorb",
+      "competitive"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 70,
+      "defense": 60,
+      "special_attack": 105,
+      "special_defense": 60,
+      "speed": 125
+    },
+    "base_experience": 172
+  },
+  "kingambit": {
+    "id": 983,
+    "name": "Kingambit",
+    "api_name": "kingambit",
+    "image": "kingambit.png",
+    "types": [
+      "dark",
+      "steel"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2,
+    "weight_kg": 120,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "defiant",
+      "supreme-overlord",
+      "pressure"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 135,
+      "defense": 120,
+      "special_attack": 60,
+      "special_defense": 85,
+      "speed": 50
+    },
+    "base_experience": 275
+  },
+  "klawf": {
+    "id": 950,
+    "name": "Klawf",
+    "api_name": "klawf",
+    "image": "klawf.png",
+    "types": [
+      "rock"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.3,
+    "weight_kg": 79,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "anger-shell",
+      "shell-armor",
+      "regenerator"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 100,
+      "defense": 115,
+      "special_attack": 35,
+      "special_defense": 55,
+      "speed": 75
+    },
+    "base_experience": 158
+  },
+  "kleavor": {
+    "id": 900,
+    "name": "Kleavor",
+    "api_name": "kleavor",
+    "image": "kleavor.png",
+    "types": [
+      "bug",
+      "rock"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.8,
+    "weight_kg": 89,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "swarm",
+      "sheer-force",
+      "sharpness"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 135,
+      "defense": 95,
+      "special_attack": 45,
+      "special_defense": 70,
+      "speed": 85
+    },
+    "base_experience": 175
+  },
+  "koraidon": {
+    "id": 1007,
+    "name": "Koraidon",
+    "api_name": "koraidon",
+    "image": "koraidon.png",
+    "types": [
+      "fighting",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.5,
+    "weight_kg": 303,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "orichalcum-pulse"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 135,
+      "defense": 115,
+      "special_attack": 85,
+      "special_defense": 100,
+      "speed": 135
+    },
+    "base_experience": 335
+  },
+  "lechonk": {
+    "id": 915,
+    "name": "Lechonk",
+    "api_name": "lechonk",
+    "image": "lechonk.png",
+    "types": [
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.5,
+    "weight_kg": 10.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "aroma-veil",
+      "gluttony",
+      "thick-fat"
+    ],
+    "stats": {
+      "hp": 54,
+      "attack": 45,
+      "defense": 40,
+      "special_attack": 35,
+      "special_defense": 45,
+      "speed": 35
+    },
+    "base_experience": 51
+  },
+  "lokix": {
+    "id": 920,
+    "name": "Lokix",
+    "api_name": "lokix",
+    "image": "lokix.png",
+    "types": [
+      "bug",
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1,
+    "weight_kg": 17.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "swarm",
+      "tinted-lens"
+    ],
+    "stats": {
+      "hp": 71,
+      "attack": 102,
+      "defense": 78,
+      "special_attack": 52,
+      "special_defense": 55,
+      "speed": 92
+    },
+    "base_experience": 158
+  },
+  "mabosstiff": {
+    "id": 943,
+    "name": "Mabosstiff",
+    "api_name": "mabosstiff",
+    "image": "mabosstiff.png",
+    "types": [
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.1,
+    "weight_kg": 61,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "intimidate",
+      "guard-dog",
+      "stakeout"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 120,
+      "defense": 90,
+      "special_attack": 60,
+      "special_defense": 70,
+      "speed": 85
+    },
+    "base_experience": 177
+  },
+  "maschiff": {
+    "id": 942,
+    "name": "Maschiff",
+    "api_name": "maschiff",
+    "image": "maschiff.png",
+    "types": [
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.5,
+    "weight_kg": 16,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "intimidate",
+      "run-away",
+      "stakeout"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 78,
+      "defense": 60,
+      "special_attack": 40,
+      "special_defense": 51,
+      "speed": 51
+    },
+    "base_experience": 68
+  },
+  "maushold": {
+    "id": 925,
+    "name": "Maushold",
+    "api_name": "maushold",
+    "image": "maushold.png",
+    "types": [
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 2.8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "friend-guard",
+      "cheek-pouch",
+      "technician"
+    ],
+    "stats": {
+      "hp": 74,
+      "attack": 75,
+      "defense": 70,
+      "special_attack": 65,
+      "special_defense": 75,
+      "speed": 111
+    },
+    "base_experience": 165
+  },
+  "meowscarada": {
+    "id": 908,
+    "name": "Meowscarada",
+    "api_name": "meowscarada",
+    "image": "meowscarada.png",
+    "types": [
+      "grass",
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 31.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "overgrow",
+      "protean"
+    ],
+    "stats": {
+      "hp": 76,
+      "attack": 110,
+      "defense": 70,
+      "special_attack": 81,
+      "special_defense": 70,
+      "speed": 123
+    },
+    "base_experience": 265
+  },
+  "miraidon": {
+    "id": 1008,
+    "name": "Miraidon",
+    "api_name": "miraidon",
+    "image": "miraidon.png",
+    "types": [
+      "electric",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 3.5,
+    "weight_kg": 240,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "hadron-engine"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 85,
+      "defense": 100,
+      "special_attack": 135,
+      "special_defense": 115,
+      "speed": 135
+    },
+    "base_experience": 335
+  },
+  "munkidori": {
+    "id": 1015,
+    "name": "Munkidori",
+    "api_name": "munkidori",
+    "image": "munkidori.png",
+    "types": [
+      "poison",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1,
+    "weight_kg": 12.2,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "toxic-chain",
+      "frisk"
+    ],
+    "stats": {
+      "hp": 88,
+      "attack": 75,
+      "defense": 66,
+      "special_attack": 130,
+      "special_defense": 90,
+      "speed": 106
+    },
+    "base_experience": 278
+  },
+  "nacli": {
+    "id": 932,
+    "name": "Nacli",
+    "api_name": "nacli",
+    "image": "nacli.png",
+    "types": [
+      "rock"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 16,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "purifying-salt",
+      "sturdy",
+      "clear-body"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 55,
+      "defense": 75,
+      "special_attack": 35,
+      "special_defense": 35,
+      "speed": 25
+    },
+    "base_experience": 56
+  },
+  "naclstack": {
+    "id": 933,
+    "name": "Naclstack",
+    "api_name": "naclstack",
+    "image": "naclstack.png",
+    "types": [
+      "rock"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 105,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "purifying-salt",
+      "sturdy",
+      "clear-body"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 60,
+      "defense": 100,
+      "special_attack": 35,
+      "special_defense": 65,
+      "speed": 35
+    },
+    "base_experience": 124
+  },
+  "nymble": {
+    "id": 919,
+    "name": "Nymble",
+    "api_name": "nymble",
+    "image": "nymble.png",
+    "types": [
+      "bug"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.2,
+    "weight_kg": 1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "swarm",
+      "tinted-lens"
+    ],
+    "stats": {
+      "hp": 33,
+      "attack": 46,
+      "defense": 40,
+      "special_attack": 21,
+      "special_defense": 25,
+      "speed": 45
+    },
+    "base_experience": 42
+  },
+  "ogerpon": {
+    "id": 1017,
+    "name": "Ogerpon",
+    "api_name": "ogerpon",
+    "image": "ogerpon.png",
+    "types": [
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 39.8,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "defiant"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 120,
+      "defense": 84,
+      "special_attack": 60,
+      "special_defense": 96,
+      "speed": 110
+    },
+    "base_experience": 275
+  },
+  "oinkologne": {
+    "id": 916,
+    "name": "Oinkologne",
+    "api_name": "oinkologne",
+    "image": "oinkologne.png",
+    "types": [
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1,
+    "weight_kg": 120,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "lingering-aroma",
+      "gluttony",
+      "thick-fat"
+    ],
+    "stats": {
+      "hp": 110,
+      "attack": 100,
+      "defense": 75,
+      "special_attack": 59,
+      "special_defense": 80,
+      "speed": 65
+    },
+    "base_experience": 171
+  },
+  "okidogi": {
+    "id": 1014,
+    "name": "Okidogi",
+    "api_name": "okidogi",
+    "image": "okidogi.png",
+    "types": [
+      "poison",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.8,
+    "weight_kg": 92.2,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "toxic-chain",
+      "guard-dog"
+    ],
+    "stats": {
+      "hp": 88,
+      "attack": 128,
+      "defense": 115,
+      "special_attack": 58,
+      "special_defense": 86,
+      "speed": 80
+    },
+    "base_experience": 278
+  },
+  "orthworm": {
+    "id": 968,
+    "name": "Orthworm",
+    "api_name": "orthworm",
+    "image": "orthworm.png",
+    "types": [
+      "steel"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.5,
+    "weight_kg": 310,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "earth-eater",
+      "sand-veil"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 85,
+      "defense": 145,
+      "special_attack": 60,
+      "special_defense": 55,
+      "speed": 65
+    },
+    "base_experience": 240
+  },
+  "overqwil": {
+    "id": 904,
+    "name": "Overqwil",
+    "api_name": "overqwil",
+    "image": "overqwil.png",
+    "types": [
+      "dark",
+      "poison"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 2.5,
+    "weight_kg": 60.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "poison-point",
+      "swift-swim",
+      "intimidate"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 115,
+      "defense": 95,
+      "special_attack": 65,
+      "special_defense": 65,
+      "speed": 85
+    },
+    "base_experience": 179
+  },
+  "palafin": {
+    "id": 964,
+    "name": "Palafin",
+    "api_name": "palafin",
+    "image": "palafin.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.3,
+    "weight_kg": 60.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "zero-to-hero"
+    ],
+    "stats": {
+      "hp": 100,
+      "attack": 70,
+      "defense": 72,
+      "special_attack": 53,
+      "special_defense": 62,
+      "speed": 100
+    },
+    "base_experience": 160
+  },
+  "pawmi": {
+    "id": 921,
+    "name": "Pawmi",
+    "api_name": "pawmi",
+    "image": "pawmi.png",
+    "types": [
+      "electric"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 2.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "static",
+      "natural-cure",
+      "iron-fist"
+    ],
+    "stats": {
+      "hp": 45,
+      "attack": 50,
+      "defense": 20,
+      "special_attack": 40,
+      "special_defense": 25,
+      "speed": 60
+    },
+    "base_experience": 48
+  },
+  "pawmo": {
+    "id": 922,
+    "name": "Pawmo",
+    "api_name": "pawmo",
+    "image": "pawmo.png",
+    "types": [
+      "electric",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 6.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "volt-absorb",
+      "natural-cure",
+      "iron-fist"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 75,
+      "defense": 40,
+      "special_attack": 50,
+      "special_defense": 40,
+      "speed": 85
+    },
+    "base_experience": 123
+  },
+  "pawmot": {
+    "id": 923,
+    "name": "Pawmot",
+    "api_name": "pawmot",
+    "image": "pawmot.png",
+    "types": [
+      "electric",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.9,
+    "weight_kg": 41,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "volt-absorb",
+      "natural-cure",
+      "iron-fist"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 115,
+      "defense": 70,
+      "special_attack": 70,
+      "special_defense": 60,
+      "speed": 105
+    },
+    "base_experience": 245
+  },
+  "pecharunt": {
+    "id": 1025,
+    "name": "Pecharunt",
+    "api_name": "pecharunt",
+    "image": "pecharunt.png",
+    "types": [
+      "poison",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 0.3,
+    "legendary": false,
+    "mythical": true,
+    "baby": false,
+    "abilities": [
+      "poison-puppeteer"
+    ],
+    "stats": {
+      "hp": 88,
+      "attack": 88,
+      "defense": 160,
+      "special_attack": 88,
+      "special_defense": 88,
+      "speed": 88
+    },
+    "base_experience": 300
+  },
+  "poltchageist": {
+    "id": 1012,
+    "name": "Poltchageist",
+    "api_name": "poltchageist",
+    "image": "poltchageist.png",
+    "types": [
+      "grass",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.1,
+    "weight_kg": 1.1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "hospitality",
+      "heatproof"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 45,
+      "defense": 45,
+      "special_attack": 74,
+      "special_defense": 54,
+      "speed": 50
+    },
+    "base_experience": 62
+  },
+  "quaquaval": {
+    "id": 914,
+    "name": "Quaquaval",
+    "api_name": "quaquaval",
+    "image": "quaquaval.png",
+    "types": [
+      "water",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.8,
+    "weight_kg": 61.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "torrent",
+      "moxie"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 120,
+      "defense": 80,
+      "special_attack": 85,
+      "special_defense": 75,
+      "speed": 85
+    },
+    "base_experience": 265
+  },
+  "quaxly": {
+    "id": 912,
+    "name": "Quaxly",
+    "api_name": "quaxly",
+    "image": "quaxly.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.5,
+    "weight_kg": 6.1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "torrent",
+      "moxie"
+    ],
+    "stats": {
+      "hp": 55,
+      "attack": 65,
+      "defense": 45,
+      "special_attack": 50,
+      "special_defense": 45,
+      "speed": 50
+    },
+    "base_experience": 62
+  },
+  "quaxwell": {
+    "id": 913,
+    "name": "Quaxwell",
+    "api_name": "quaxwell",
+    "image": "quaxwell.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 21.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "torrent",
+      "moxie"
+    ],
+    "stats": {
+      "hp": 70,
+      "attack": 85,
+      "defense": 65,
+      "special_attack": 65,
+      "special_defense": 60,
+      "speed": 65
+    },
+    "base_experience": 144
+  },
+  "rabsca": {
+    "id": 954,
+    "name": "Rabsca",
+    "api_name": "rabsca",
+    "image": "rabsca.png",
+    "types": [
+      "bug",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 3.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "synchronize",
+      "telepathy"
+    ],
+    "stats": {
+      "hp": 75,
+      "attack": 50,
+      "defense": 85,
+      "special_attack": 115,
+      "special_defense": 100,
+      "speed": 45
+    },
+    "base_experience": 165
+  },
+  "raging-bolt": {
+    "id": 1021,
+    "name": "Raging Bolt",
+    "api_name": "raging-bolt",
+    "image": "raging-bolt.png",
+    "types": [
+      "electric",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 5.2,
+    "weight_kg": 480,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 125,
+      "attack": 73,
+      "defense": 91,
+      "special_attack": 137,
+      "special_defense": 89,
+      "speed": 75
+    },
+    "base_experience": 295
+  },
+  "rellor": {
+    "id": 953,
+    "name": "Rellor",
+    "api_name": "rellor",
+    "image": "rellor.png",
+    "types": [
+      "bug"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.2,
+    "weight_kg": 1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "compound-eyes",
+      "shed-skin"
+    ],
+    "stats": {
+      "hp": 41,
+      "attack": 50,
+      "defense": 60,
+      "special_attack": 31,
+      "special_defense": 58,
+      "speed": 30
+    },
+    "base_experience": 54
+  },
+  "revavroom": {
+    "id": 966,
+    "name": "Revavroom",
+    "api_name": "revavroom",
+    "image": "revavroom.png",
+    "types": [
+      "steel",
+      "poison"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.8,
+    "weight_kg": 120,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "overcoat",
+      "filter"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 119,
+      "defense": 90,
+      "special_attack": 54,
+      "special_defense": 67,
+      "speed": 90
+    },
+    "base_experience": 175
+  },
+  "roaring-moon": {
+    "id": 1005,
+    "name": "Roaring Moon",
+    "api_name": "roaring-moon",
+    "image": "roaring-moon.png",
+    "types": [
+      "dragon",
+      "dark"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2,
+    "weight_kg": 380,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 105,
+      "attack": 139,
+      "defense": 71,
+      "special_attack": 55,
+      "special_defense": 101,
+      "speed": 119
+    },
+    "base_experience": 295
+  },
+  "sandy-shocks": {
+    "id": 989,
+    "name": "Sandy Shocks",
+    "api_name": "sandy-shocks",
+    "image": "sandy-shocks.png",
+    "types": [
+      "electric",
+      "ground"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.3,
+    "weight_kg": 60,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 81,
+      "defense": 97,
+      "special_attack": 121,
+      "special_defense": 85,
+      "speed": 101
+    },
+    "base_experience": 285
+  },
+  "scovillain": {
+    "id": 952,
+    "name": "Scovillain",
+    "api_name": "scovillain",
+    "image": "scovillain.png",
+    "types": [
+      "grass",
+      "fire"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.9,
+    "weight_kg": 15,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "chlorophyll",
+      "insomnia",
+      "moody"
+    ],
+    "stats": {
+      "hp": 65,
+      "attack": 108,
+      "defense": 65,
+      "special_attack": 108,
+      "special_defense": 65,
+      "speed": 75
+    },
+    "base_experience": 170
+  },
+  "scream-tail": {
+    "id": 985,
+    "name": "Scream Tail",
+    "api_name": "scream-tail",
+    "image": "scream-tail.png",
+    "types": [
+      "fairy",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 115,
+      "attack": 65,
+      "defense": 99,
+      "special_attack": 65,
+      "special_defense": 115,
+      "speed": 111
+    },
+    "base_experience": 285
+  },
+  "shroodle": {
+    "id": 944,
+    "name": "Shroodle",
+    "api_name": "shroodle",
+    "image": "shroodle.png",
+    "types": [
+      "poison",
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.2,
+    "weight_kg": 0.7,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "unburden",
+      "pickpocket",
+      "prankster"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 65,
+      "defense": 35,
+      "special_attack": 40,
+      "special_defense": 35,
+      "speed": 75
+    },
+    "base_experience": 58
+  },
+  "sinistcha": {
+    "id": 1013,
+    "name": "Sinistcha",
+    "api_name": "sinistcha",
+    "image": "sinistcha.png",
+    "types": [
+      "grass",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.2,
+    "weight_kg": 2.2,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "hospitality",
+      "heatproof"
+    ],
+    "stats": {
+      "hp": 71,
+      "attack": 60,
+      "defense": 106,
+      "special_attack": 121,
+      "special_defense": 80,
+      "speed": 70
+    },
+    "base_experience": 178
+  },
+  "skeledirge": {
+    "id": 911,
+    "name": "Skeledirge",
+    "api_name": "skeledirge",
+    "image": "skeledirge.png",
+    "types": [
+      "fire",
+      "ghost"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.6,
+    "weight_kg": 326.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "blaze",
+      "unaware"
+    ],
+    "stats": {
+      "hp": 104,
+      "attack": 75,
+      "defense": 100,
+      "special_attack": 110,
+      "special_defense": 75,
+      "speed": 66
+    },
+    "base_experience": 265
+  },
+  "slither-wing": {
+    "id": 988,
+    "name": "Slither Wing",
+    "api_name": "slither-wing",
+    "image": "slither-wing.png",
+    "types": [
+      "bug",
+      "fighting"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 3.2,
+    "weight_kg": 92,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 135,
+      "defense": 79,
+      "special_attack": 85,
+      "special_defense": 105,
+      "speed": 81
+    },
+    "base_experience": 285
+  },
+  "smoliv": {
+    "id": 928,
+    "name": "Smoliv",
+    "api_name": "smoliv",
+    "image": "smoliv.png",
+    "types": [
+      "grass",
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 6.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "early-bird",
+      "harvest"
+    ],
+    "stats": {
+      "hp": 41,
+      "attack": 35,
+      "defense": 45,
+      "special_attack": 58,
+      "special_defense": 51,
+      "speed": 30
+    },
+    "base_experience": 52
+  },
+  "sneasler": {
+    "id": 903,
+    "name": "Sneasler",
+    "api_name": "sneasler",
+    "image": "sneasler.png",
+    "types": [
+      "fighting",
+      "poison"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.3,
+    "weight_kg": 43,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "pressure",
+      "unburden",
+      "poison-touch"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 130,
+      "defense": 60,
+      "special_attack": 40,
+      "special_defense": 80,
+      "speed": 120
+    },
+    "base_experience": 102
+  },
+  "spidops": {
+    "id": 918,
+    "name": "Spidops",
+    "api_name": "spidops",
+    "image": "spidops.png",
+    "types": [
+      "bug"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1,
+    "weight_kg": 16.5,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "insomnia",
+      "stakeout"
+    ],
+    "stats": {
+      "hp": 60,
+      "attack": 79,
+      "defense": 92,
+      "special_attack": 52,
+      "special_defense": 86,
+      "speed": 35
+    },
+    "base_experience": 141
+  },
+  "sprigatito": {
+    "id": 906,
+    "name": "Sprigatito",
+    "api_name": "sprigatito",
+    "image": "sprigatito.png",
+    "types": [
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 4.1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "overgrow",
+      "protean"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 61,
+      "defense": 54,
+      "special_attack": 45,
+      "special_defense": 45,
+      "speed": 65
+    },
+    "base_experience": 62
+  },
+  "squawkabilly": {
+    "id": 931,
+    "name": "Squawkabilly",
+    "api_name": "squawkabilly",
+    "image": "squawkabilly.png",
+    "types": [
+      "normal",
+      "flying"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.6,
+    "weight_kg": 2.4,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "intimidate",
+      "hustle",
+      "guts"
+    ],
+    "stats": {
+      "hp": 82,
+      "attack": 96,
+      "defense": 51,
+      "special_attack": 45,
+      "special_defense": 51,
+      "speed": 92
+    },
+    "base_experience": 146
+  },
+  "tadbulb": {
+    "id": 938,
+    "name": "Tadbulb",
+    "api_name": "tadbulb",
+    "image": "tadbulb.png",
+    "types": [
+      "electric"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 0.4,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "own-tempo",
+      "static",
+      "damp"
+    ],
+    "stats": {
+      "hp": 61,
+      "attack": 31,
+      "defense": 41,
+      "special_attack": 59,
+      "special_defense": 35,
+      "speed": 45
+    },
+    "base_experience": 54
+  },
+  "tandemaus": {
+    "id": 924,
+    "name": "Tandemaus",
+    "api_name": "tandemaus",
+    "image": "tandemaus.png",
+    "types": [
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 1.8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "run-away",
+      "pickup",
+      "own-tempo"
+    ],
+    "stats": {
+      "hp": 50,
+      "attack": 50,
+      "defense": 45,
+      "special_attack": 40,
+      "special_defense": 45,
+      "speed": 75
+    },
+    "base_experience": 61
+  },
+  "tarountula": {
+    "id": 917,
+    "name": "Tarountula",
+    "api_name": "tarountula",
+    "image": "tarountula.png",
+    "types": [
+      "bug"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 4,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "insomnia",
+      "stakeout"
+    ],
+    "stats": {
+      "hp": 35,
+      "attack": 41,
+      "defense": 45,
+      "special_attack": 29,
+      "special_defense": 40,
+      "speed": 20
+    },
+    "base_experience": 42
+  },
+  "tatsugiri": {
+    "id": 978,
+    "name": "Tatsugiri",
+    "api_name": "tatsugiri",
+    "image": "tatsugiri.png",
+    "types": [
+      "dragon",
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.3,
+    "weight_kg": 8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "commander",
+      "storm-drain"
+    ],
+    "stats": {
+      "hp": 68,
+      "attack": 50,
+      "defense": 60,
+      "special_attack": 120,
+      "special_defense": 95,
+      "speed": 82
+    },
+    "base_experience": 166
+  },
+  "terapagos": {
+    "id": 1024,
+    "name": "Terapagos",
+    "api_name": "terapagos",
+    "image": "terapagos.png",
+    "types": [
+      "normal"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.2,
+    "weight_kg": 6.5,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "tera-shift"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 65,
+      "defense": 85,
+      "special_attack": 65,
+      "special_defense": 85,
+      "speed": 60
+    },
+    "base_experience": 90
+  },
+  "ting-lu": {
+    "id": 1003,
+    "name": "Ting Lu",
+    "api_name": "ting-lu",
+    "image": "ting-lu.png",
+    "types": [
+      "dark",
+      "ground"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.7,
+    "weight_kg": 699.7,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "vessel-of-ruin"
+    ],
+    "stats": {
+      "hp": 155,
+      "attack": 110,
+      "defense": 125,
+      "special_attack": 55,
+      "special_defense": 80,
+      "speed": 45
+    },
+    "base_experience": 285
+  },
+  "tinkatink": {
+    "id": 957,
+    "name": "Tinkatink",
+    "api_name": "tinkatink",
+    "image": "tinkatink.png",
+    "types": [
+      "fairy",
+      "steel"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 8.9,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "mold-breaker",
+      "own-tempo",
+      "pickpocket"
+    ],
+    "stats": {
+      "hp": 50,
+      "attack": 45,
+      "defense": 45,
+      "special_attack": 35,
+      "special_defense": 64,
+      "speed": 58
+    },
+    "base_experience": 59
+  },
+  "tinkaton": {
+    "id": 959,
+    "name": "Tinkaton",
+    "api_name": "tinkaton",
+    "image": "tinkaton.png",
+    "types": [
+      "fairy",
+      "steel"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.7,
+    "weight_kg": 112.8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "mold-breaker",
+      "own-tempo",
+      "pickpocket"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 75,
+      "defense": 77,
+      "special_attack": 70,
+      "special_defense": 105,
+      "speed": 94
+    },
+    "base_experience": 253
+  },
+  "tinkatuff": {
+    "id": 958,
+    "name": "Tinkatuff",
+    "api_name": "tinkatuff",
+    "image": "tinkatuff.png",
+    "types": [
+      "fairy",
+      "steel"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.7,
+    "weight_kg": 59.1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "mold-breaker",
+      "own-tempo",
+      "pickpocket"
+    ],
+    "stats": {
+      "hp": 65,
+      "attack": 55,
+      "defense": 55,
+      "special_attack": 45,
+      "special_defense": 82,
+      "speed": 78
+    },
+    "base_experience": 133
+  },
+  "toedscool": {
+    "id": 948,
+    "name": "Toedscool",
+    "api_name": "toedscool",
+    "image": "toedscool.png",
+    "types": [
+      "ground",
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.9,
+    "weight_kg": 33,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "mycelium-might"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 40,
+      "defense": 35,
+      "special_attack": 50,
+      "special_defense": 100,
+      "speed": 70
+    },
+    "base_experience": 67
+  },
+  "toedscruel": {
+    "id": 949,
+    "name": "Toedscruel",
+    "api_name": "toedscruel",
+    "image": "toedscruel.png",
+    "types": [
+      "ground",
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.9,
+    "weight_kg": 58,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "mycelium-might"
+    ],
+    "stats": {
+      "hp": 80,
+      "attack": 70,
+      "defense": 65,
+      "special_attack": 80,
+      "special_defense": 120,
+      "speed": 100
+    },
+    "base_experience": 180
+  },
+  "ursaluna": {
+    "id": 901,
+    "name": "Ursaluna",
+    "api_name": "ursaluna",
+    "image": "ursaluna.png",
+    "types": [
+      "ground",
+      "normal"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 2.4,
+    "weight_kg": 290,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "guts",
+      "bulletproof",
+      "unnerve"
+    ],
+    "stats": {
+      "hp": 130,
+      "attack": 140,
+      "defense": 105,
+      "special_attack": 45,
+      "special_defense": 80,
+      "speed": 50
+    },
+    "base_experience": 275
+  },
+  "varoom": {
+    "id": 965,
+    "name": "Varoom",
+    "api_name": "varoom",
+    "image": "varoom.png",
+    "types": [
+      "steel",
+      "poison"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1,
+    "weight_kg": 35,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "overcoat",
+      "slow-start"
+    ],
+    "stats": {
+      "hp": 45,
+      "attack": 70,
+      "defense": 63,
+      "special_attack": 30,
+      "special_defense": 45,
+      "speed": 47
+    },
+    "base_experience": 60
+  },
+  "veluza": {
+    "id": 976,
+    "name": "Veluza",
+    "api_name": "veluza",
+    "image": "veluza.png",
+    "types": [
+      "water",
+      "psychic"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 2.5,
+    "weight_kg": 90,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "mold-breaker",
+      "sharpness"
+    ],
+    "stats": {
+      "hp": 90,
+      "attack": 102,
+      "defense": 73,
+      "special_attack": 78,
+      "special_defense": 65,
+      "speed": 70
+    },
+    "base_experience": 167
+  },
+  "walking-wake": {
+    "id": 1009,
+    "name": "Walking Wake",
+    "api_name": "walking-wake",
+    "image": "walking-wake.png",
+    "types": [
+      "water",
+      "dragon"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 3.5,
+    "weight_kg": 280,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "protosynthesis"
+    ],
+    "stats": {
+      "hp": 99,
+      "attack": 83,
+      "defense": 91,
+      "special_attack": 125,
+      "special_defense": 83,
+      "speed": 109
+    },
+    "base_experience": 295
+  },
+  "wattrel": {
+    "id": 940,
+    "name": "Wattrel",
+    "api_name": "wattrel",
+    "image": "wattrel.png",
+    "types": [
+      "electric",
+      "flying"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 0.4,
+    "weight_kg": 3.6,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "wind-power",
+      "volt-absorb",
+      "competitive"
+    ],
+    "stats": {
+      "hp": 40,
+      "attack": 40,
+      "defense": 35,
+      "special_attack": 55,
+      "special_defense": 40,
+      "speed": 70
+    },
+    "base_experience": 56
+  },
+  "wiglett": {
+    "id": 960,
+    "name": "Wiglett",
+    "api_name": "wiglett",
+    "image": "wiglett.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 1.8,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "gooey",
+      "rattled",
+      "sand-veil"
+    ],
+    "stats": {
+      "hp": 10,
+      "attack": 55,
+      "defense": 25,
+      "special_attack": 35,
+      "special_defense": 25,
+      "speed": 95
+    },
+    "base_experience": 49
+  },
+  "wo-chien": {
+    "id": 1001,
+    "name": "Wo Chien",
+    "api_name": "wo-chien",
+    "image": "wo-chien.png",
+    "types": [
+      "dark",
+      "grass"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.5,
+    "weight_kg": 74.2,
+    "legendary": true,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "tablets-of-ruin"
+    ],
+    "stats": {
+      "hp": 85,
+      "attack": 85,
+      "defense": 100,
+      "special_attack": 95,
+      "special_defense": 135,
+      "speed": 70
+    },
+    "base_experience": 285
+  },
+  "wugtrio": {
+    "id": 961,
+    "name": "Wugtrio",
+    "api_name": "wugtrio",
+    "image": "wugtrio.png",
+    "types": [
+      "water"
+    ],
+    "region": "Paldea",
+    "generation": 9,
+    "height_m": 1.2,
+    "weight_kg": 5.4,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "gooey",
+      "rattled",
+      "sand-veil"
+    ],
+    "stats": {
+      "hp": 35,
+      "attack": 100,
+      "defense": 50,
+      "special_attack": 50,
+      "special_defense": 70,
+      "speed": 120
+    },
+    "base_experience": 149
+  },
+  "wyrdeer": {
+    "id": 899,
+    "name": "Wyrdeer",
+    "api_name": "wyrdeer",
+    "image": "wyrdeer.png",
+    "types": [
+      "normal",
+      "psychic"
+    ],
+    "region": "Galar",
+    "generation": 8,
+    "height_m": 1.8,
+    "weight_kg": 95.1,
+    "legendary": false,
+    "mythical": false,
+    "baby": false,
+    "abilities": [
+      "intimidate",
+      "frisk",
+      "sap-sipper"
+    ],
+    "stats": {
+      "hp": 103,
+      "attack": 105,
+      "defense": 72,
+      "special_attack": 105,
+      "special_defense": 75,
+      "speed": 65
+    },
+    "base_experience": 263
   }
 }

@@ -10,10 +10,13 @@ set -Eeuo pipefail
 #
 #   - Normales que falten (por ejemplo, #899-#1025).
 #   - Shiny de todos los Pokémon, en la subcarpeta "shiny/".
+#   - Las 48 megaevoluciones clásicas (Gen 6 y 7), normales y shiny, en
+#     "mega/" y "mega/shiny/".
 #
 # Fuentes:
 #   - #1-#905:    PokéSprite (msikma/pokesprite), íconos de Espada/Escudo y
 #                 versiones no oficiales de Leyendas Arceus.
+#   - Megas:      PokéSprite (íconos de la Gen 7 adaptados a 68x56).
 #   - #906-#1025: bamq/pokemon-sprites, íconos de Escarlata/Púrpura del
 #                 National Pokédex Version Delta Project adaptados a 68x56.
 #   - Nombres:    CSV de especies de PokéAPI.
@@ -127,6 +130,7 @@ fi
 DESTINATION_DIR="${POKEMON_DIR:-$HOME/.local/share/pokimg/images}"
 DOWNLOAD_NORMAL=true
 DOWNLOAD_SHINY=true
+DOWNLOAD_MEGA=true
 FORCE_DOWNLOAD=false
 JOBS=8
 
@@ -141,7 +145,8 @@ Uso:
 
 Descarga los sprites que faltan con la estética de pokimg:
   - normales que falten (por ejemplo, la Gen 9 y Leyendas Arceus);
-  - shiny de todos los Pokémon, en la subcarpeta "shiny/".
+  - shiny de todos los Pokémon, en la subcarpeta "shiny/";
+  - las 48 megaevoluciones clásicas, normales y shiny, en "mega/".
 
 Los sprites que ya existen no se vuelven a descargar.
 
@@ -150,6 +155,8 @@ Opciones:
                    configuración, o ~/.local/share/pokimg/images.
   --only-normal    Descargar solo los sprites normales.
   --only-shiny     Descargar solo los sprites shiny.
+  --only-megas     Descargar solo las megaevoluciones (normales y shiny).
+  --no-megas       No descargar las megaevoluciones.
   --force          Volver a descargar aunque el archivo exista.
   --jobs N         Descargas en paralelo. Predeterminado: 8.
   -h, --help       Mostrar esta ayuda.
@@ -169,11 +176,24 @@ while (($# > 0)); do
 
         --only-normal)
             DOWNLOAD_SHINY=false
+            DOWNLOAD_MEGA=false
             shift
             ;;
 
         --only-shiny)
             DOWNLOAD_NORMAL=false
+            DOWNLOAD_MEGA=false
+            shift
+            ;;
+
+        --only-megas)
+            DOWNLOAD_NORMAL=false
+            DOWNLOAD_SHINY=false
+            shift
+            ;;
+
+        --no-megas)
+            DOWNLOAD_MEGA=false
             shift
             ;;
 
@@ -219,6 +239,10 @@ mkdir -p "$DESTINATION_DIR"
 
 if [[ "$DOWNLOAD_SHINY" == "true" ]]; then
     mkdir -p "$DESTINATION_DIR/shiny"
+fi
+
+if [[ "$DOWNLOAD_MEGA" == "true" ]]; then
+    mkdir -p "$DESTINATION_DIR/mega/shiny"
 fi
 
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/pokemon-fastfetch-sprites.XXXXXX")"
@@ -313,8 +337,35 @@ while read -r species_id species_name source_name; do
     fi
 done < "$WORK_DIR/species.txt"
 
+# Megaevoluciones: formas "mega", "mega-x" y "mega-y" de PokéSprite.
+MEGA_COUNT=0
+
+if [[ "$DOWNLOAD_MEGA" == "true" ]]; then
+    while read -r mega_name; do
+        MEGA_COUNT=$((MEGA_COUNT + 1))
+
+        add_task \
+            "$POKESPRITE_BASE/pokemon-gen8/regular/$mega_name.png" \
+            "$DESTINATION_DIR/mega/$mega_name.png"
+
+        add_task \
+            "$POKESPRITE_BASE/pokemon-gen8/shiny/$mega_name.png" \
+            "$DESTINATION_DIR/mega/shiny/$mega_name.png"
+    done < <(
+        jq -r '
+            .[]
+            | .slug.eng as $slug
+            | (.["gen-8"].forms // {})
+            | keys[]
+            | select(test("^mega(-[xy])?$"))
+            | "\($slug)-\(.)"
+        ' "$WORK_DIR/pokesprite.json" | sort
+    )
+fi
+
 printf '\n'
 printf 'Especies:        %s\n' "$SPECIES_COUNT"
+printf 'Megas:           %s\n' "$MEGA_COUNT"
 printf 'Ya descargados:  %s\n' "$ALREADY_PRESENT"
 printf 'Por descargar:   %s\n' "$TASK_COUNT"
 printf 'Destino:         %s\n\n' "$DESTINATION_DIR"

@@ -282,7 +282,7 @@ migrate_legacy_cache() {
 remove_legacy_fish_blocks() {
     [[ -f "$FISH_MAIN_CONFIG" ]] || return 0
 
-    sed -i \
+    sed -i --follow-symlinks \
         -e '/Script_pokemon.*random-fastfetch\.sh/d' \
         -e '/Pokemon-FastFetch.*random-fastfetch\.sh/d' \
         -e '/pokemon-fastfetch.*random-fastfetch\.sh/d' \

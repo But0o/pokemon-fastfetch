@@ -68,6 +68,7 @@ FISH_CONFIG_FILE="$FISH_CONFIG_DIR/${APP_NAME}.fish"
 POKEMON_DIR_OVERRIDE=""
 ASSUME_YES=false
 ENABLE_AUTOSTART=true
+ENABLE_FASTFETCH_ALIAS=true
 
 RESET=$'\033[0m'
 BOLD=$'\033[1m'
@@ -83,6 +84,7 @@ Uso:
 Opciones:
   --yes, -y                  Acepta automáticamente las preguntas.
   --no-autostart             No ejecuta Pokémon Fastfetch al abrir Kitty.
+  --no-fastfetch-alias       Crea solo "pokefetch" y no reemplaza "fastfetch".
   --pokemon-dir RUTA         Indica manualmente la carpeta de imágenes.
   --help, -h                 Muestra esta ayuda.
 
@@ -296,6 +298,11 @@ backup_existing_installation() {
 
     timestamp="$(date +'%Y-%m-%d_%H-%M-%S')"
     backup_dir="$BACKUP_ROOT/$timestamp"
+
+    # Dos instalaciones en el mismo segundo no deben mezclar respaldos.
+    if [[ -e "$backup_dir" ]]; then
+        backup_dir="$backup_dir-$$"
+    fi
 
     mkdir -p "$backup_dir"
 
@@ -513,10 +520,19 @@ write_fish_config() {
     {
         printf '# Pokémon Fastfetch %s\n' "$APP_VERSION"
         printf '# Generado automáticamente por install.sh\n\n'
-        printf 'function fastfetch --description "Pokémon Fastfetch"\n'
+        printf 'function pokefetch --description "Pokémon Fastfetch"\n'
         # shellcheck disable=SC2016
         printf '    "%s/random-fastfetch.sh" $argv\n' "$INSTALL_DIR"
         printf 'end\n'
+
+        # "fastfetch" se mantiene por compatibilidad. Si el fastfetch
+        # real está instalado, sigue disponible con "command fastfetch".
+        if [[ "$ENABLE_FASTFETCH_ALIAS" == "true" ]]; then
+            printf '\nfunction fastfetch --description "Pokémon Fastfetch (alias de pokefetch)"\n'
+            # shellcheck disable=SC2016
+            printf '    pokefetch $argv\n'
+            printf 'end\n'
+        fi
 
         if [[ "$ENABLE_AUTOSTART" == "true" ]]; then
             cat <<EOF
@@ -587,6 +603,11 @@ parse_arguments() {
                 shift
                 ;;
 
+            --no-fastfetch-alias)
+                ENABLE_FASTFETCH_ALIAS=false
+                shift
+                ;;
+
             --pokemon-dir)
                 (($# >= 2)) ||
                     pf_die "Falta la ruta después de --pokemon-dir."
@@ -647,10 +668,16 @@ main() {
     printf '\n'
     printf 'Abrí una terminal Kitty nueva o ejecutá:\n\n'
     printf '  source %q\n' "$FISH_CONFIG_FILE"
-    printf '  fastfetch\n\n'
+    printf '  pokefetch\n\n'
 
     if [[ "$ENABLE_AUTOSTART" == "false" ]]; then
         pf_info "El inicio automático quedó desactivado."
+    fi
+
+    if [[ "$ENABLE_FASTFETCH_ALIAS" == "true" ]] && pf_command_exists fastfetch; then
+        pf_info "Tenés fastfetch instalado: en Fish, \"fastfetch\" ahora abre Pokémon Fastfetch."
+        pf_info "El original sigue disponible con: command fastfetch"
+        pf_info "Para no reemplazarlo, reinstalá con: ./install.sh --no-fastfetch-alias"
     fi
 }
 

@@ -89,9 +89,17 @@ pokemon_count="$(
     jq 'length' "$ROOT_DIR/config/pokedex.json"
 )"
 
-if [[ "$pokemon_count" -ne 898 ]]; then
-    printf '[ERROR] Se esperaban 898 Pokémon y se encontraron %s.\n' \
+# Al menos las 8 primeras generaciones. Se pueden agregar más (Gen 9)
+# sin tocar este test, siempre que los IDs sigan siendo 1..N sin huecos.
+if [[ "$pokemon_count" -lt 898 ]]; then
+    printf '[ERROR] Se esperaban al menos 898 Pokémon y se encontraron %s.\n' \
         "$pokemon_count" >&2
+    exit 1
+fi
+
+if ! jq -e '[.[].id] | sort == [range(1; length + 1)]' \
+    "$ROOT_DIR/config/pokedex.json" >/dev/null; then
+    printf '[ERROR] Los IDs de la Pokédex no son consecutivos desde 1.\n' >&2
     exit 1
 fi
 
@@ -193,6 +201,71 @@ if [[ "$installed_unique_id_count" -ne "$installed_count" ]]; then
 fi
 
 printf '  [OK] Instalación aislada con %s Pokémon\n' "$installed_count"
+
+printf '\n==> Probando renderizado\n'
+
+if command -v magick >/dev/null 2>&1; then
+    TEST_MAGICK=magick
+elif command -v convert >/dev/null 2>&1; then
+    TEST_MAGICK=convert
+else
+    TEST_MAGICK=""
+fi
+
+if [[ -z "$TEST_MAGICK" ]] || ! command -v fc-match >/dev/null 2>&1; then
+    printf '  [SKIP] Falta ImageMagick o fontconfig\n'
+else
+    RENDER_HOME="$TEST_ROOT/render-home"
+    RENDER_IMAGES="$TEST_ROOT/render-images"
+
+    mkdir -p "$RENDER_HOME/.cache/pokemon-fastfetch" "$RENDER_IMAGES"
+    cp "$ROOT_DIR/config/pokedex.json" "$RENDER_HOME/.cache/pokemon-fastfetch/"
+    "$TEST_MAGICK" -size 64x64 xc:none -fill '#f5d142' \
+        -draw 'circle 32,32 32,8' "$RENDER_IMAGES/pikachu.png"
+
+    render() {
+        env \
+            HOME="$RENDER_HOME" \
+            XDG_CACHE_HOME="$RENDER_HOME/.cache" \
+            XDG_CONFIG_HOME="$RENDER_HOME/.config" \
+            POKEMON_DIR="$RENDER_IMAGES" \
+            "$@"
+    }
+
+    # --check resuelve números y nombres sin renderizar.
+    [[ "$(render "$ROOT_DIR/render-pokemon.sh" --check 25)" == "pikachu" ]] || {
+        printf '[ERROR] render-pokemon.sh --check 25 no devolvió pikachu.\n' >&2
+        exit 1
+    }
+
+    if render "$ROOT_DIR/render-pokemon.sh" --check noexiste >/dev/null 2>&1; then
+        printf '[ERROR] --check aceptó un Pokémon inexistente.\n' >&2
+        exit 1
+    fi
+
+    printf '  [OK] render-pokemon.sh --check\n'
+
+    # Render completo a dos tamaños (layout completo y compacto).
+    for size in 1760x460 900x322; do
+        panel="$(
+            render \
+                PF_RENDER_WIDTH="${size%x*}" \
+                PF_RENDER_HEIGHT="${size#*x}" \
+                "$ROOT_DIR/render-pokemon.sh" pikachu
+        )"
+
+        actual_size="$("$TEST_MAGICK" identify -format '%wx%h' "$panel" 2>/dev/null ||
+            identify -format '%wx%h' "$panel")"
+
+        if [[ "$actual_size" != "$size" ]]; then
+            printf '[ERROR] Panel de %s generado con tamaño %s.\n' \
+                "$size" "$actual_size" >&2
+            exit 1
+        fi
+
+        printf '  [OK] Panel %s\n' "$size"
+    done
+fi
 
 printf '\n==> Probando ayudas\n'
 

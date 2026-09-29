@@ -61,6 +61,7 @@ TEMP_DIR="$(
 )"
 
 WORKING_JSON="$TEMP_DIR/pokedex.json"
+NEW_ENTRIES_JSONL="$TEMP_DIR/new-entries.jsonl"
 
 ADDED=0
 SKIPPED=0
@@ -129,6 +130,19 @@ pf_require_directory \
     "El directorio de imágenes"
 
 cp "$POKEDEX_FILE" "$WORKING_JSON"
+: > "$NEW_ENTRIES_JSONL"
+
+# Claves e IDs existentes, cargados una sola vez en memoria.
+# Antes se releía el JSON completo por cada sprite.
+declare -A KNOWN_KEYS=()
+declare -A KNOWN_IDS=()
+
+while IFS=$'\t' read -r EXISTING_KEY EXISTING_ID; do
+    KNOWN_KEYS["$EXISTING_KEY"]=1
+    KNOWN_IDS["$EXISTING_ID"]=1
+done < <(
+    jq -r 'to_entries[] | [.key, (.value.id // 0 | tostring)] | @tsv' "$WORKING_JSON"
+)
 
 BACKUP_FILE="$SCRIPT_DIR/config/pokedex-backup-$(date +%Y%m%d-%H%M%S).json"
 
@@ -271,11 +285,7 @@ for POKEMON_NAME in "${SPRITE_NAMES[@]}"; do
         "$POKEMON_NAME"
 
     # Ya existe con esa clave exacta.
-    if jq -e \
-        --arg name "$POKEMON_NAME" \
-        'has($name)' \
-        "$WORKING_JSON" >/dev/null
-    then
+    if [[ -n "${KNOWN_KEYS[$POKEMON_NAME]:-}" ]]; then
         SKIPPED=$((SKIPPED + 1))
         continue
     fi
@@ -332,22 +342,7 @@ for POKEMON_NAME in "${SPRITE_NAMES[@]}"; do
     fi
 
     # Evitar duplicar IDs por si una especie ya existe bajo otra clave.
-    EXISTING_ID_COUNT="$(
-        jq -r \
-            --argjson id "$ID" \
-            '
-                [
-                    .[]
-                    | select(
-                        (.id // 0) == $id
-                    )
-                ]
-                | length
-            ' \
-            "$WORKING_JSON"
-    )"
-
-    if ((EXISTING_ID_COUNT > 0)); then
+    if [[ -n "${KNOWN_IDS[$ID]:-}" ]]; then
         SKIPPED=$((SKIPPED + 1))
         continue
     fi
@@ -556,16 +551,15 @@ for POKEMON_NAME in "${SPRITE_NAMES[@]}"; do
             '
     )"
 
-    TEMP_OUTPUT="$TEMP_DIR/pokedex-next.json"
-
-    jq \
+    # Las entradas nuevas se juntan y se agregan todas juntas al final,
+    # en vez de reescribir la Pokédex completa por cada una.
+    jq -cn \
         --arg key "$POKEMON_NAME" \
         --argjson value "$NEW_ENTRY" \
-        '. + {($key): $value}' \
-        "$WORKING_JSON" \
-        > "$TEMP_OUTPUT"
+        '{key: $key, value: $value}' >> "$NEW_ENTRIES_JSONL"
 
-    mv "$TEMP_OUTPUT" "$WORKING_JSON"
+    KNOWN_KEYS["$POKEMON_NAME"]=1
+    KNOWN_IDS["$ID"]=1
 
     ADDED=$((ADDED + 1))
 
@@ -577,6 +571,16 @@ for POKEMON_NAME in "${SPRITE_NAMES[@]}"; do
 done
 
 printf '\n\n'
+
+if ((ADDED > 0)); then
+    jq -s \
+        '.[0] + (.[1:] | map({(.key): .value}) | add // {})' \
+        "$WORKING_JSON" \
+        "$NEW_ENTRIES_JSONL" \
+        > "$TEMP_DIR/pokedex-next.json"
+
+    mv "$TEMP_DIR/pokedex-next.json" "$WORKING_JSON"
+fi
 
 # -----------------------------------------------------------------------------
 # Validación final

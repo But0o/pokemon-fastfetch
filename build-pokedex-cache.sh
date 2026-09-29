@@ -118,27 +118,12 @@ printf '%sPokémon encontrados: %s%s\n\n' \
 # Procesar cada Pokémon
 # ────────────────────────────────────────────────────────────────
 
-while IFS= read -r KEY; do
+# El JSON se recorre una sola vez: por cada Pokémon, jq emite una línea
+# de metadatos (TSV) y otra con la entrada completa {key, value}.
+# Antes se volvía a leer el archivo entero tres veces por Pokémon.
+while IFS=$'\t' read -r HAS_COMPLETE_DATA KEY ID NAME &&
+    IFS= read -r ENTRY_LINE; do
     CURRENT=$((CURRENT + 1))
-
-    EXISTING_ENTRY="$(
-        jq -c \
-            --arg key "$KEY" \
-            '.[$key]' \
-            "$CACHE_FILE"
-    )"
-
-    ID="$(
-        jq -r '.id // 0' <<< "$EXISTING_ENTRY"
-    )"
-
-    NAME="$(
-        jq -r '
-            .name
-            // .api_name
-            // "Desconocido"
-        ' <<< "$EXISTING_ENTRY"
-    )"
 
     printf '\r%s[%4d/%4d]%s %-28s' \
         "$CYAN" \
@@ -149,37 +134,12 @@ while IFS= read -r KEY; do
 
     # Si ya tiene todas las estadísticas y habilidades,
     # reutilizamos la entrada sin consultar internet.
-    HAS_COMPLETE_DATA="$(
-        jq -r '
-            (
-                (.stats.hp // null) != null
-                and
-                (.stats.attack // null) != null
-                and
-                (.stats.defense // null) != null
-                and
-                (.stats.special_attack // null) != null
-                and
-                (.stats.special_defense // null) != null
-                and
-                (.stats.speed // null) != null
-                and
-                ((.abilities // []) | length > 0)
-            )
-        ' <<< "$EXISTING_ENTRY"
-    )"
-
     if [[ "$HAS_COMPLETE_DATA" == "true" ]]; then
-        jq -cn \
-            --arg key "$KEY" \
-            --argjson value "$EXISTING_ENTRY" \
-            '{
-                key: $key,
-                value: $value
-            }' >> "$TEMP_JSONL"
-
+        printf '%s\n' "$ENTRY_LINE" >> "$TEMP_JSONL"
         continue
     fi
+
+    EXISTING_ENTRY="$(jq -c '.value' <<< "$ENTRY_LINE")"
 
     API_RESPONSE="$(
         curl \
@@ -198,13 +158,7 @@ while IFS= read -r KEY; do
     if [[ -z "$API_RESPONSE" ]]; then
         FAILED=$((FAILED + 1))
 
-        jq -cn \
-            --arg key "$KEY" \
-            --argjson value "$EXISTING_ENTRY" \
-            '{
-                key: $key,
-                value: $value
-            }' >> "$TEMP_JSONL"
+        printf '%s\n' "$ENTRY_LINE" >> "$TEMP_JSONL"
 
         continue
     fi
@@ -310,7 +264,25 @@ done < <(
     jq -r '
         to_entries
         | sort_by(.value.id // 99999)
-        | .[].key
+        | .[]
+        | (
+            [
+                (
+                    (.value.stats.hp // null) != null
+                    and (.value.stats.attack // null) != null
+                    and (.value.stats.defense // null) != null
+                    and (.value.stats.special_attack // null) != null
+                    and (.value.stats.special_defense // null) != null
+                    and (.value.stats.speed // null) != null
+                    and ((.value.abilities // []) | length > 0)
+                ),
+                .key,
+                (.value.id // 0),
+                (.value.name // .value.api_name // "Desconocido")
+            ]
+            | @tsv
+        ),
+        tojson
     ' "$CACHE_FILE"
 )
 

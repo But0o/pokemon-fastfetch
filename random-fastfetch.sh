@@ -295,12 +295,10 @@ query_cell_size() {
 # Imprime "ANCHO ALTO" de una celda en píxeles.
 get_cell_size() {
     local columns="$1"
-    local lines=""
+    local lines="$2"
     local window_size=""
     local cell_width=0
     local cell_height=0
-
-    lines="$(tput lines 2>/dev/null || printf '0')"
 
     window_size="$(
         { kitten icat --print-window-size < /dev/tty; } 2>/dev/null ||
@@ -394,21 +392,22 @@ case "${1:-}" in
             pf_error "Tenés que indicar un Pokémon por nombre o número."
             echo
             echo "Ejemplos:"
-            echo "  pokemon-set pikachu"
-            echo "  pokemon-set 25"
+            echo "  fastfetch --set pikachu"
+            echo "  fastfetch --set 25"
             exit 1
         fi
 
-        # Comprobar que el Pokémon existe.
-        TEST_PANEL="$("$RENDER_SCRIPT" "$FIXED_REQUEST" 2>/dev/null || true)"
+        # Comprobar que el Pokémon y su imagen existen, sin renderizar.
+        # Se guarda la clave canónica (por ejemplo "25" -> "pikachu").
+        FIXED_KEY="$("$RENDER_SCRIPT" --check "$FIXED_REQUEST" 2>/dev/null || true)"
 
-        if [[ -z "$TEST_PANEL" || ! -s "$TEST_PANEL" ]]; then
-            pf_die "No se encontró el Pokémon: $FIXED_REQUEST"
+        if [[ -z "$FIXED_KEY" ]]; then
+            pf_die "No se encontró el Pokémon o su imagen: $FIXED_REQUEST"
         fi
 
-        printf '%s\n' "$FIXED_REQUEST" > "$FIXED_POKEMON_FILE"
+        printf '%s\n' "$FIXED_KEY" > "$FIXED_POKEMON_FILE"
 
-        echo "Pokémon fijo configurado: $FIXED_REQUEST"
+        echo "Pokémon fijo configurado: $FIXED_KEY"
         echo "Se mostrará al abrir nuevas terminales."
         exit 0
         ;;
@@ -461,25 +460,6 @@ if [[ -z "$REQUEST" ]]; then
     pf_die "No se pudo seleccionar un Pokémon."
 fi
 
-# ────────────────────────────────────────────────────────────────
-# Forzar regeneración opcional
-# ────────────────────────────────────────────────────────────────
-
-if [[ "$FORCE_RERENDER" == "true" ]]; then
-    SAFE_REQUEST="$(
-        printf '%s' "$REQUEST" |
-            tr '[:upper:]' '[:lower:]' |
-            sed \
-                -e 's/[[:space:]_]/-/g' \
-                -e 's/[^a-z0-9.-]/-/g'
-    )"
-
-    rm -f \
-        "$CACHE_ROOT/panels-v2/${SAFE_REQUEST}.png" \
-        "$CACHE_ROOT/panels-v2/${SAFE_REQUEST}-"*.png \
-        2>/dev/null ||
-        true
-fi
 
 # ────────────────────────────────────────────────────────────────
 # Tamaño del panel Pokémon (responsive)
@@ -500,7 +480,13 @@ COMPACT_LAYOUT_MIN_WIDTH=1000
 TERMINAL_COLUMNS="$(get_terminal_columns)"
 PANEL_COLUMNS="$TERMINAL_COLUMNS"
 
-read -r CELL_WIDTH CELL_HEIGHT <<< "$(get_cell_size "$PANEL_COLUMNS")"
+TERMINAL_LINES="$(tput lines 2>/dev/null || printf '0')"
+
+if ! [[ "$TERMINAL_LINES" =~ ^[0-9]+$ ]]; then
+    TERMINAL_LINES=0
+fi
+
+read -r CELL_WIDTH CELL_HEIGHT <<< "$(get_cell_size "$PANEL_COLUMNS" "$TERMINAL_LINES")"
 
 PANEL_PIXEL_WIDTH="$((PANEL_COLUMNS * CELL_WIDTH))"
 
@@ -526,6 +512,22 @@ else
     if ((PANEL_ROWS > MINIMUM_FULL_ROWS)); then
         PANEL_ROWS="$MINIMUM_FULL_ROWS"
     fi
+fi
+
+# En terminales bajas, dejar lugar para el panel del sistema y el prompt:
+# divisor + 8 filas + paleta (2) + prompt (1).
+if [[ "$SHOW_SYSTEM_INFO" == "true" ]]; then
+    RESERVED_ROWS=10
+
+    if [[ "$SHOW_COLOR_PALETTE" == "true" ]]; then
+        RESERVED_ROWS=12
+    fi
+else
+    RESERVED_ROWS=1
+fi
+
+if ((TERMINAL_LINES > 0 && PANEL_ROWS > TERMINAL_LINES - RESERVED_ROWS)); then
+    PANEL_ROWS="$((TERMINAL_LINES - RESERVED_ROWS))"
 fi
 
 if ((PANEL_ROWS < 5)); then
@@ -607,8 +609,17 @@ cleanup_render_output() {
 
 trap cleanup_render_output EXIT
 
+# --rerender: el renderer resuelve el nombre o número y descarta los
+# paneles cacheados de ese Pokémon antes de volver a generarlo.
+FORCE_RENDER_FLAG=0
+
+if [[ "$FORCE_RERENDER" == "true" ]]; then
+    FORCE_RENDER_FLAG=1
+fi
+
 PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
     PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
+    PF_FORCE_RENDER="$FORCE_RENDER_FLAG" \
     "$RENDER_SCRIPT" "$REQUEST" > "$RENDER_OUTPUT_FILE" &
 
 RENDER_PID=$!

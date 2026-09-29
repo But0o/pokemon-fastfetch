@@ -30,8 +30,10 @@ jobs:
             jq \
             shellcheck \
             imagemagick \
+            librsvg2-bin \
             kitty \
-            fontconfig
+            fontconfig \
+            fonts-dejavu-core
 
       - name: Validate Bash syntax
         run: |
@@ -61,8 +63,8 @@ jobs:
       - name: Validate Pokédex JSON
         run: |
           jq empty config/pokedex.json
-          test "$(jq 'length' config/pokedex.json)" -eq 898
-          test "$(jq '[.[].id] | unique | length' config/pokedex.json)" -eq 898
+          test "$(jq 'length' config/pokedex.json)" -ge 898
+          jq -e '[.[].id] | sort == [range(1; length + 1)]' config/pokedex.json
 
       - name: Run test suite
         env:

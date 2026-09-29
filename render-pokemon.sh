@@ -65,6 +65,7 @@ Uso:
   render-pokemon.sh pikachu
   render-pokemon.sh 6
   render-pokemon.sh 25
+  render-pokemon.sh --check "Mr. Mime"
 
 El script genera un panel PNG y muestra su ruta absoluta.
 
@@ -165,6 +166,19 @@ fi
 pf_require_nonempty_file "$POKEDEX_FILE" "La caché Pokédex"
 pf_require_directory "$POKEMON_DIR" "El directorio de imágenes"
 
+
+# --check: solo resuelve el Pokémon y comprueba su imagen, sin renderizar.
+# Imprime la clave canónica (lo usa "--set").
+CHECK_ONLY=false
+
+if [[ "${1:-}" == "--check" ]]; then
+    CHECK_ONLY=true
+    shift
+fi
+
+# PF_FORCE_RENDER=1 descarta los paneles cacheados de este Pokémon
+# y vuelve a renderizar (lo usa "--rerender").
+FORCE_RENDER="${PF_FORCE_RENDER:-0}"
 
 REQUEST="${1:-}"
 
@@ -550,6 +564,11 @@ if [[ -z "$SELECTED_IMAGE" || ! -f "$SELECTED_IMAGE" ]]; then
     exit 1
 fi
 
+if [[ "$CHECK_ONLY" == "true" ]]; then
+    printf '%s\n' "$POKEMON_KEY"
+    exit 0
+fi
+
 # ────────────────────────────────────────────────────────────────
 # Caché del panel
 #
@@ -583,7 +602,9 @@ SAFE_KEY="${POKEMON_KEY//[^a-zA-Z0-9._-]/-}"
 FINAL_PANEL="$PANELS_DIR/${SAFE_KEY}-${CACHE_HASH}.png"
 CURRENT_PANEL="$PANELS_DIR/${SAFE_KEY}.png"
 
-if [[ -s "$FINAL_PANEL" ]]; then
+if [[ "$FORCE_RENDER" == "1" ]]; then
+    rm -f "$PANELS_DIR/${SAFE_KEY}-"*.png 2>/dev/null || true
+elif [[ -s "$FINAL_PANEL" ]]; then
     printf '%s\n' "$FINAL_PANEL"
     exit 0
 fi

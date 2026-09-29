@@ -66,7 +66,9 @@ POKEDEX_FILE="$CACHE_ROOT/pokedex.json"
 
 FIXED_POKEMON_FILE="$CONFIG_ROOT/fixed-pokemon"
 
-mkdir -p "$CONFIG_ROOT"
+if [[ ! -d "$CONFIG_ROOT" ]]; then
+    mkdir -p "$CONFIG_ROOT"
+fi
 
 RENDER_SCRIPT="$SCRIPT_DIR/render-pokemon.sh"
 
@@ -168,9 +170,13 @@ case "${1:-}" in
 esac
 
 
+# trim_text VARIABLE TEXTO MAXIMO
+# Guarda el texto recortado en VARIABLE sin crear un subshell.
+# shellcheck disable=SC2034  # trim_target se asigna a través del nameref
 trim_text() {
-    local value="${1:-}"
-    local maximum="${2:-40}"
+    local -n trim_target="$1"
+    local value="${2:-}"
+    local maximum="${3:-40}"
 
     value="${value//$'\n'/ }"
     value="${value//$'\r'/ }"
@@ -180,9 +186,9 @@ trim_text() {
     done
 
     if ((${#value} > maximum)); then
-        printf '%s…' "${value:0:$((maximum - 1))}"
+        trim_target="${value:0:$((maximum - 1))}…"
     else
-        printf '%s' "$value"
+        trim_target="$value"
     fi
 }
 
@@ -199,29 +205,33 @@ safe_value() {
 
 format_bytes() {
     local bytes="${1:-0}"
+    local units=(B KiB MiB GiB TiB)
+    local unit_index=0
+    local divisor=1
+    local hundredths=0
 
     if ! [[ "$bytes" =~ ^[0-9]+$ ]]; then
         bytes=0
     fi
 
-    awk \
-        -v bytes="$bytes" \
-        'BEGIN {
-            split("B KiB MiB GiB TiB", units, " ")
-            index = 1
-            value = bytes
+    # Aritmética entera en centésimas: sin awk y sin procesos extra.
+    # (La versión anterior usaba "index" como variable de awk, que es una
+    # función incorporada, y awk fallaba en silencio.)
+    while ((bytes >= divisor * 1024 && unit_index < 4)); do
+        divisor=$((divisor * 1024))
+        unit_index=$((unit_index + 1))
+    done
 
-            while (value >= 1024 && index < 5) {
-                value /= 1024
-                index++
-            }
+    hundredths=$(((bytes * 100 + divisor / 2) / divisor))
 
-            if (index <= 2) {
-                printf "%.0f %s", value, units[index]
-            } else {
-                printf "%.2f %s", value, units[index]
-            }
-        }'
+    if ((unit_index <= 1)); then
+        printf '%d %s' "$(((hundredths + 50) / 100))" "${units[unit_index]}"
+    else
+        printf '%d.%02d %s' \
+            "$((hundredths / 100))" \
+            "$((hundredths % 100))" \
+            "${units[unit_index]}"
+    fi
 }
 
 get_terminal_columns() {
@@ -330,7 +340,38 @@ pf_require_commands \
     df
 
 
-pf_require_json "$POKEDEX_FILE" "La caché Pokédex"
+# Solo se comprueba que exista; validar el JSON completo en cada arranque
+# costaría una lectura extra. Si está roto, jq falla más adelante.
+pf_require_nonempty_file "$POKEDEX_FILE" "La caché Pokédex"
+
+# Índice de claves con imagen, para elegir al azar sin leer el JSON.
+# Se regenera solo cuando la Pokédex es más nueva que el índice.
+POKEDEX_INDEX_FILE="$CACHE_ROOT/pokedex-keys.txt"
+
+pick_random_pokemon() {
+    local keys=()
+
+    if [[ ! -s "$POKEDEX_INDEX_FILE" || "$POKEDEX_FILE" -nt "$POKEDEX_INDEX_FILE" ]]; then
+        if ! jq -r '
+                to_entries[]
+                | select((.value.image // "") | length > 0)
+                | .key
+            ' "$POKEDEX_FILE" > "$POKEDEX_INDEX_FILE.tmp" 2>/dev/null; then
+            rm -f "$POKEDEX_INDEX_FILE.tmp"
+            pf_die "La caché Pokédex contiene un JSON inválido: $POKEDEX_FILE"
+        fi
+
+        mv -f "$POKEDEX_INDEX_FILE.tmp" "$POKEDEX_INDEX_FILE"
+    fi
+
+    mapfile -t keys < "$POKEDEX_INDEX_FILE"
+
+    if ((${#keys[@]} == 0)); then
+        return 1
+    fi
+
+    printf '%s' "${keys[${SRANDOM:-$RANDOM} % ${#keys[@]}]}"
+}
 
 pf_require_executable "$RENDER_SCRIPT" "El renderizador Pokémon"
 
@@ -391,44 +432,14 @@ case "${1:-}" in
 
     --random|random)
         # Selección aleatoria solo para esta ejecución.
-        REQUEST="$(
-            jq -r '
-                to_entries
-                | map(
-                    select(
-                        (
-                            .value.image
-                            // ""
-                        )
-                        | length > 0
-                    )
-                )
-                | .[].key
-            ' "$POKEDEX_FILE" |
-                shuf --head-count=1
-        )"
+        REQUEST="$(pick_random_pokemon || true)"
         ;;
 
     "")
         if [[ -s "$FIXED_POKEMON_FILE" ]]; then
-            REQUEST="$(head -n 1 "$FIXED_POKEMON_FILE")"
+            read -r REQUEST < "$FIXED_POKEMON_FILE" || true
         else
-            REQUEST="$(
-                jq -r '
-                    to_entries
-                    | map(
-                        select(
-                            (
-                                .value.image
-                                // ""
-                            )
-                            | length > 0
-                        )
-                    )
-                    | .[].key
-                ' "$POKEDEX_FILE" |
-                    shuf --head-count=1
-            )"
+            REQUEST="$(pick_random_pokemon || true)"
         fi
         ;;
 
@@ -521,15 +532,21 @@ PANEL_PIXEL_HEIGHT="$((PANEL_ROWS * CELL_HEIGHT))"
 # Obtener panel Pokémon
 # ────────────────────────────────────────────────────────────────
 
-PANEL_IMAGE="$(
-    PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
-        PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
-        "$RENDER_SCRIPT" "$REQUEST"
-)"
+# El renderer corre en segundo plano mientras se junta la información
+# del sistema; se espera su resultado justo antes de dibujar.
+RENDER_OUTPUT_FILE="$CACHE_ROOT/.render-output-$$"
 
-if [[ -z "$PANEL_IMAGE" || ! -s "$PANEL_IMAGE" ]]; then
-    pf_die "No se pudo obtener el panel Pokémon."
-fi
+cleanup_render_output() {
+    rm -f "$RENDER_OUTPUT_FILE"
+}
+
+trap cleanup_render_output EXIT
+
+PF_RENDER_WIDTH="$PANEL_PIXEL_WIDTH" \
+    PF_RENDER_HEIGHT="$PANEL_PIXEL_HEIGHT" \
+    "$RENDER_SCRIPT" "$REQUEST" > "$RENDER_OUTPUT_FILE" &
+
+RENDER_PID=$!
 
 # ────────────────────────────────────────────────────────────────
 # Recopilar información del sistema
@@ -561,58 +578,44 @@ get_kernel() {
 }
 
 get_uptime() {
-    local uptime_value=""
+    local uptime_seconds=""
+    local days=0
+    local hours=0
+    local minutes=0
+    local result=""
 
-    if pf_command_exists uptime; then
-        uptime_value="$(
-            uptime -p 2>/dev/null |
-                sed \
-                    -e 's/^up //' \
-                    -e 's/ days\?/d/g' \
-                    -e 's/ hours\?/h/g' \
-                    -e 's/ minutes\?/m/g' \
-                    -e 's/,//g' ||
-                true
-        )"
+    # /proc/uptime se lee con builtins: sin uptime, sed ni awk.
+    if ! read -r uptime_seconds _ < /proc/uptime 2>/dev/null; then
+        printf 'No disponible'
+        return
     fi
 
-    if [[ -z "$uptime_value" && -r /proc/uptime ]]; then
-        uptime_value="$(
-            awk '
-                {
-                    seconds = int($1)
-                    days = int(seconds / 86400)
-                    hours = int((seconds % 86400) / 3600)
-                    minutes = int((seconds % 3600) / 60)
+    uptime_seconds="${uptime_seconds%%.*}"
 
-                    if (days > 0) {
-                        printf "%dd ", days
-                    }
+    days=$((uptime_seconds / 86400))
+    hours=$((uptime_seconds % 86400 / 3600))
+    minutes=$((uptime_seconds % 3600 / 60))
 
-                    if (hours > 0 || days > 0) {
-                        printf "%dh ", hours
-                    }
-
-                    printf "%dm", minutes
-                }
-            ' /proc/uptime
-        )"
+    if ((days > 0)); then
+        result+="${days}d "
     fi
 
-    safe_value "$uptime_value"
+    if ((days > 0 || hours > 0)); then
+        result+="${hours}h "
+    fi
+
+    printf '%s%dm' "$result" "$minutes"
 }
 
 get_packages() {
     local packages=""
+    local entries=()
 
-    if pf_command_exists pacman; then
-        packages="$(
-            pacman -Qq 2>/dev/null |
-                wc -l |
-                tr -d ' '
-        )"
-
-        printf '%s (pacman)' "$packages"
+    # Cada paquete instalado es una carpeta en la base local de pacman.
+    # Contarlas con un glob es mucho más rápido que "pacman -Qq".
+    if [[ -d /var/lib/pacman/local ]]; then
+        entries=(/var/lib/pacman/local/*/)
+        printf '%s (pacman)' "${#entries[@]}"
         return
     fi
 
@@ -883,29 +886,26 @@ get_memory() {
 }
 
 get_disk() {
-    local disk_line=""
     local total=""
     local used=""
     local percent=""
     local filesystem=""
 
-    disk_line="$(
+    {
+        read -r _
+        read -r total used percent filesystem
+    } < <(
         df \
             --block-size=1 \
             --output=size,used,pcent,fstype \
             / \
-            2>/dev/null |
-            tail -n 1 |
-            awk '{$1=$1; print}' ||
-            true
-    )"
+            2>/dev/null
+    ) || true
 
-    if [[ -z "$disk_line" ]]; then
+    if ! [[ "$total" =~ ^[0-9]+$ ]]; then
         printf 'No disponible'
         return
     fi
-
-    read -r total used percent filesystem <<< "$disk_line"
 
     printf '%s / %s (%s) - %s' \
         "$(format_bytes "$used")" \
@@ -916,37 +916,27 @@ get_disk() {
 
 get_network() {
     local interface=""
+    local destination=""
     local address=""
+    local field=""
+    local fields=()
 
-    if pf_command_exists ip; then
-        interface="$(
-            ip route show default 2>/dev/null |
-                awk '
-                    {
-                        for (i = 1; i <= NF; i++) {
-                            if ($i == "dev") {
-                                print $(i + 1)
-                                exit
-                            }
-                        }
-                    }
-                ' ||
-                true
-        )"
+    # La ruta por defecto (destino 00000000) sale de /proc, sin "ip route".
+    if [[ -r /proc/net/route ]]; then
+        while read -r field destination _; do
+            if [[ "$destination" == "00000000" ]]; then
+                interface="$field"
+                break
+            fi
+        done < /proc/net/route
+    fi
 
-        if [[ -n "$interface" ]]; then
-            address="$(
-                ip \
-                    -o \
-                    -4 \
-                    address \
-                    show \
-                    dev "$interface" \
-                    2>/dev/null |
-                    awk '{print $4; exit}' ||
-                    true
-            )"
-        fi
+    if [[ -n "$interface" ]] && pf_command_exists ip; then
+        read -r -a fields < <(
+            ip -o -4 address show dev "$interface" 2>/dev/null
+        ) || true
+
+        address="${fields[3]:-}"
     fi
 
     if [[ -n "$interface" && -n "$address" ]]; then
@@ -958,35 +948,37 @@ get_network() {
     fi
 }
 
-get_install_age() {
+# Fecha de creación del sistema de archivos raíz (se cachea por arranque).
+get_install_birth() {
     local timestamp=""
-    local current=""
-    local days=""
 
-    if [[ -e / ]]; then
-        timestamp="$(
-            stat \
-                --format='%W' \
-                / \
-                2>/dev/null ||
-                printf '0'
-        )"
+    timestamp="$(stat --format='%W' / 2>/dev/null || printf '0')"
+
+    if [[ "$timestamp" =~ ^[0-9]+$ ]]; then
+        printf '%s' "$timestamp"
+    else
+        printf '0'
     fi
+}
 
-    if [[ "$timestamp" =~ ^[0-9]+$ ]] && ((timestamp > 0)); then
-        current="$(date +%s)"
-        days="$(((current - timestamp) / 86400))"
+get_install_age() {
+    local birth="${1:-0}"
+    local now=""
+    local days=0
 
-        printf '%s días' "$days"
-        return
-    fi
-
-    if pf_command_exists tune2fs; then
+    if ! [[ "$birth" =~ ^[0-9]+$ ]] || ((birth <= 0)); then
         printf 'No disponible'
         return
     fi
 
-    printf 'No disponible'
+    printf -v now '%(%s)T' -1
+    days=$(((now - birth) / 86400))
+
+    if ((days == 1)); then
+        printf '1 día'
+    else
+        printf '%s días' "$days"
+    fi
 }
 
 get_machine() {
@@ -1018,23 +1010,93 @@ get_machine() {
 # Recopilar valores
 # ────────────────────────────────────────────────────────────────
 
-OS_VALUE="$(get_os)"
-KERNEL_VALUE="$(get_kernel)"
-UPTIME_VALUE="$(get_uptime)"
-PACKAGES_VALUE="$(get_packages)"
-SHELL_VALUE="$(get_shell)"
-DISPLAY_VALUE="$(get_display)"
-WM_VALUE="$(get_window_manager)"
-TERMINAL_VALUE="$(get_terminal)"
-FONT_VALUE="$(get_font)"
+# Datos que no cambian hasta reiniciar (CPU, GPU, versiones, fuente...)
+# se guardan en un archivo. La clave incluye el boot_id, así que cada
+# arranque del sistema, o una sesión nueva de Hyprland, los recalcula.
+STATIC_CACHE_FILE="$CACHE_ROOT/system-static.cache"
+STATIC_FIELDS=(
+    OS_VALUE KERNEL_VALUE SHELL_VALUE WM_VALUE TERMINAL_VALUE
+    FONT_VALUE CPU_VALUE GPU_VALUE MACHINE_VALUE OS_BIRTH_VALUE
+)
 
-CPU_VALUE="$(get_cpu)"
-GPU_VALUE="$(get_gpu)"
-MEMORY_VALUE="$(get_memory)"
-DISK_VALUE="$(get_disk)"
-NETWORK_VALUE="$(get_network)"
-OS_AGE_VALUE="$(get_install_age)"
-MACHINE_VALUE="$(get_machine)"
+load_static_info() {
+    local boot_id=""
+    local cache_key=""
+    local lines=()
+    local index=0
+    local field=""
+
+    read -r boot_id < /proc/sys/kernel/random/boot_id 2>/dev/null || true
+
+    cache_key="v1|$APP_VERSION|$boot_id|${TERM:-}|${SHELL:-}"
+    cache_key+="|${HYPRLAND_INSTANCE_SIGNATURE:-}|${XDG_CURRENT_DESKTOP:-}"
+
+    if [[ -n "$boot_id" && -r "$STATIC_CACHE_FILE" ]]; then
+        mapfile -t lines < "$STATIC_CACHE_FILE"
+
+        if [[ "${lines[0]:-}" == "$cache_key" ]] &&
+            ((${#lines[@]} == ${#STATIC_FIELDS[@]} + 1)); then
+            for field in "${STATIC_FIELDS[@]}"; do
+                index=$((index + 1))
+                printf -v "$field" '%s' "${lines[index]}"
+            done
+
+            return 0
+        fi
+    fi
+
+    OS_VALUE="$(get_os)"
+    KERNEL_VALUE="$(get_kernel)"
+    SHELL_VALUE="$(get_shell)"
+    WM_VALUE="$(get_window_manager)"
+    TERMINAL_VALUE="$(get_terminal)"
+    FONT_VALUE="$(get_font)"
+    CPU_VALUE="$(get_cpu)"
+    GPU_VALUE="$(get_gpu)"
+    MACHINE_VALUE="$(get_machine)"
+    OS_BIRTH_VALUE="$(get_install_birth)"
+
+    if [[ -n "$boot_id" ]]; then
+        if {
+            printf '%s\n' "$cache_key"
+
+            for field in "${STATIC_FIELDS[@]}"; do
+                printf '%s\n' "${!field//$'\n'/ }"
+            done
+        } > "$STATIC_CACHE_FILE.tmp" 2>/dev/null; then
+            mv -f "$STATIC_CACHE_FILE.tmp" "$STATIC_CACHE_FILE" 2>/dev/null || true
+        else
+            rm -f "$STATIC_CACHE_FILE.tmp"
+        fi
+    fi
+}
+
+if [[ "$SHOW_SYSTEM_INFO" == "true" ]]; then
+    load_static_info
+
+    UPTIME_VALUE="$(get_uptime)"
+    PACKAGES_VALUE="$(get_packages)"
+    DISPLAY_VALUE="$(get_display)"
+    MEMORY_VALUE="$(get_memory)"
+    DISK_VALUE="$(get_disk)"
+    NETWORK_VALUE="$(get_network)"
+    OS_AGE_VALUE="$(get_install_age "$OS_BIRTH_VALUE")"
+fi
+
+# ────────────────────────────────────────────────────────────────
+# Esperar el panel Pokémon
+# ────────────────────────────────────────────────────────────────
+
+if ! wait "$RENDER_PID"; then
+    pf_die "No se pudo obtener el panel Pokémon."
+fi
+
+PANEL_IMAGE=""
+read -r PANEL_IMAGE < "$RENDER_OUTPUT_FILE" || true
+
+if [[ -z "$PANEL_IMAGE" || ! -s "$PANEL_IMAGE" ]]; then
+    pf_die "No se pudo obtener el panel Pokémon."
+fi
 
 # ────────────────────────────────────────────────────────────────
 # Ajustar tamaños según terminal
@@ -1148,8 +1210,8 @@ print_two_columns() {
     local right_label="$7"
     local right_value="$8"
 
-    left_value="$(trim_text "$left_value" "$LEFT_VALUE_WIDTH")"
-    right_value="$(trim_text "$right_value" "$RIGHT_VALUE_WIDTH")"
+    trim_text left_value "$left_value" "$LEFT_VALUE_WIDTH"
+    trim_text right_value "$right_value" "$RIGHT_VALUE_WIDTH"
 
     printf '%*s' "$LEFT_INDENT" ''
 

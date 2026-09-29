@@ -472,40 +472,39 @@ EOF
 }
 
 ensure_pokedex_cache() {
-    local source_cache=""
+    local bundled_cache="$SOURCE_DIR/config/pokedex.json"
     local destination_cache="$CACHE_DIR/pokedex.json"
+    local bundled_count=0
+    local installed_count=0
+    local backup_file=""
 
-    local cache_candidates=(
-        "$CACHE_DIR/pokedex.json"
-        "$SOURCE_DIR/config/pokedex.json"
-        "$SOURCE_DIR/cache/pokedex.json"
-        "$SOURCE_DIR/pokedex.json"
-    )
-  
+    # check_project_files y check_pokedex_file ya validaron la del repo.
+    bundled_count="$(jq 'length' "$bundled_cache")"
 
-    local candidate=""
+    if [[ -s "$destination_cache" ]] &&
+        installed_count="$(jq 'length' "$destination_cache" 2>/dev/null)" &&
+        [[ "$installed_count" =~ ^[0-9]+$ ]]; then
 
-    for candidate in "${cache_candidates[@]}"; do
-        if [[ -s "$candidate" ]] && jq empty "$candidate" >/dev/null 2>&1; then
-            source_cache="$candidate"
-            break
+        # Se conserva la caché instalada (puede estar enriquecida con
+        # build-pokedex-cache.sh) salvo que la del repo tenga más Pokémon.
+        if ((installed_count >= bundled_count)); then
+            pf_success "Caché Pokédex existente conservada ($installed_count Pokémon)."
+            return 0
         fi
-    done
 
-    if [[ -n "$source_cache" && "$source_cache" != "$destination_cache" ]]; then
-        cp -f "$source_cache" "$destination_cache"
-        pf_success "Caché Pokédex copiada desde: $source_cache"
-        return 0
+        backup_file="$CACHE_DIR/pokedex-backup-$(date +'%Y%m%d-%H%M%S').json"
+        cp -f "$destination_cache" "$backup_file"
+
+        pf_info "La Pokédex del repositorio tiene más Pokémon ($bundled_count) que la instalada ($installed_count)."
+        pf_info "Respaldo de la anterior: $backup_file"
+    elif [[ -e "$destination_cache" ]]; then
+        pf_warn "La caché Pokédex instalada es inválida; se reemplaza."
     fi
 
-    if [[ -s "$destination_cache" ]] && jq empty "$destination_cache" >/dev/null 2>&1; then
-        pf_success "Caché Pokédex existente conservada."
-        return 0
-    fi
+    cp -f "$bundled_cache" "$destination_cache.tmp"
+    mv -f "$destination_cache.tmp" "$destination_cache"
 
-    pf_warn "No se encontró una caché Pokédex válida."
-    pf_warn "Después de instalar, ejecutá:"
-    printf '\n  %q\n\n' "$INSTALL_DIR/build-pokedex-cache.sh"
+    pf_success "Caché Pokédex instalada ($bundled_count Pokémon)."
 }
 
 write_fish_config() {

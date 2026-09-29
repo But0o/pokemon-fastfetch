@@ -132,8 +132,12 @@ if ! [[ "$PANEL_HEIGHT" =~ ^[0-9]+$ ]] || ((PANEL_HEIGHT < 60)); then
     PANEL_HEIGHT=450
 fi
 
-mkdir -p "$PANELS_DIR"
-mkdir -p "$TEMP_DIR"
+# Máximo de paneles guardados en caché (uno por Pokémon y tamaño).
+PANEL_CACHE_MAX="${POKEMON_PANEL_CACHE_MAX:-60}"
+
+if ! [[ "$PANEL_CACHE_MAX" =~ ^[0-9]+$ ]] || ((PANEL_CACHE_MAX < 1)); then
+    PANEL_CACHE_MAX=60
+fi
 
 # ────────────────────────────────────────────────────────────────
 # Dependencias
@@ -141,14 +145,24 @@ mkdir -p "$TEMP_DIR"
 
 pf_require_commands \
     jq \
-    magick \
     sha256sum \
     fc-match \
     sed \
     awk \
     find
 
-pf_require_json "$POKEDEX_FILE" "La caché Pokédex"
+# ImageMagick 7 usa "magick"; ImageMagick 6 (Debian/Ubuntu) usa "convert".
+if pf_command_exists magick; then
+    MAGICK_BIN="magick"
+elif pf_command_exists convert; then
+    MAGICK_BIN="convert"
+else
+    pf_die "Falta ImageMagick: no se encontró 'magick' ni 'convert'."
+fi
+
+# Solo se comprueba que exista: validar todo el JSON en cada arranque
+# costaría otra lectura completa. Si está roto, la consulta de abajo falla.
+pf_require_nonempty_file "$POKEDEX_FILE" "La caché Pokédex"
 pf_require_directory "$POKEMON_DIR" "El directorio de imágenes"
 
 
@@ -384,167 +398,199 @@ calculate_bar_width() {
 }
 
 # ────────────────────────────────────────────────────────────────
-# Seleccionar entrada
+# Seleccionar entrada y leer datos
+#
+# Una sola llamada a jq resuelve el Pokémon (por número, clave o
+# api_name) y devuelve todos los campos como asignaciones de shell
+# escapadas con @sh. Antes eran unas 22 llamadas separadas.
 # ────────────────────────────────────────────────────────────────
+
+REQUEST_ID=0
+REQUEST_NAME=""
 
 if [[ "$REQUEST" =~ ^[0-9]+$ ]]; then
     REQUEST_ID="$((10#$REQUEST))"
-
-    POKEMON_KEY="$(
-        jq -r \
-            --argjson requested_id "$REQUEST_ID" \
-            '
-                to_entries
-                | map(
-                    select(
-                        (.value.id // 0) == $requested_id
-                    )
-                )
-                | .[0].key // empty
-            ' \
-            "$POKEDEX_FILE"
-    )"
 else
-    NORMALIZED_REQUEST="$(normalize_name "$REQUEST")"
-
-    POKEMON_KEY="$(
-        jq -r \
-            --arg requested_name "$NORMALIZED_REQUEST" \
-            '
-                if has($requested_name) then
-                    $requested_name
-                else
-                    (
-                        to_entries
-                        | map(
-                            select(
-                                (
-                                    .value.api_name
-                                    // ""
-                                ) == $requested_name
-                            )
-                        )
-                        | .[0].key // empty
-                    )
-                end
-            ' \
-            "$POKEDEX_FILE"
-    )"
+    REQUEST_NAME="$(normalize_name "$REQUEST")"
 fi
+
+POKEMON_KEY=""
+
+if ! POKEMON_FIELDS="$(
+    jq -r \
+        --arg request_name "$REQUEST_NAME" \
+        --argjson request_id "$REQUEST_ID" \
+        '
+            def field($name; $value):
+                "\($name)=\($value | tostring | @sh)";
+
+            (
+                if $request_id > 0 then
+                    first(to_entries[] | select((.value.id // 0) == $request_id))
+                elif has($request_name) then
+                    { key: $request_name, value: .[$request_name] }
+                else
+                    first(to_entries[] | select((.value.api_name // "") == $request_name))
+                end
+            ) // null
+            | if . == null or .value == null then
+                empty
+            else
+                .key as $key
+                | .value as $p
+                | [
+                    field("POKEMON_KEY"; $key),
+                    field("POKEMON_DATA"; $p | tojson),
+                    field("ID"; $p.id // 0),
+                    field("NAME"; $p.name // $p.api_name // "Desconocido"),
+                    field("API_NAME"; $p.api_name // ""),
+                    field("IMAGE_VALUE"; $p.image // ""),
+                    field("PRIMARY_TYPE"; $p.types[0] // "normal"),
+                    field("SECONDARY_TYPE"; $p.types[1] // ""),
+                    field("REGION"; $p.region // "Desconocida"),
+                    field("GENERATION"; $p.generation // 0),
+                    field("HEIGHT"; $p.height_m // 0),
+                    field("WEIGHT"; $p.weight_kg // 0),
+                    field("IS_LEGENDARY"; $p.legendary // false),
+                    field("IS_MYTHICAL"; $p.mythical // false),
+                    field("IS_BABY"; $p.baby // false),
+                    field("HP"; $p.stats.hp // 0),
+                    field("ATK"; $p.stats.attack // 0),
+                    field("DEF"; $p.stats.defense // 0),
+                    field("SPATK"; $p.stats.special_attack // 0),
+                    field("SPDEF"; $p.stats.special_defense // 0),
+                    field("SPEED"; $p.stats.speed // 0),
+                    field(
+                        "ABILITIES";
+                        ($p.abilities // [])
+                        | map(
+                            gsub("-"; " ")
+                            | split(" ")
+                            | map(
+                                if length > 0 then
+                                    (.[0:1] | ascii_upcase) + .[1:]
+                                else
+                                    .
+                                end
+                            )
+                            | join(" ")
+                        )
+                        | join(", ")
+                    )
+                ]
+                | join("\n")
+            end
+        ' \
+        "$POKEDEX_FILE" 2>/dev/null
+)"; then
+    pf_die "No se pudo leer la caché Pokédex (¿JSON inválido?): $POKEDEX_FILE"
+fi
+
+# Las asignaciones vienen escapadas con @sh, así que eval es seguro.
+eval "$POKEMON_FIELDS"
 
 if [[ -z "$POKEMON_KEY" ]]; then
     pf_die "No se encontró el Pokémon: $REQUEST"
 fi
 
-POKEMON_DATA="$(
-    jq -c \
-        --arg key "$POKEMON_KEY" \
-        '.[$key]' \
-        "$POKEDEX_FILE"
-)"
+# Los números se usan en aritmética de Bash: solo se aceptan enteros.
+for NUMERIC_FIELD in ID GENERATION HP ATK DEF SPATK SPDEF SPEED; do
+    if ! [[ "${!NUMERIC_FIELD}" =~ ^[0-9]+$ ]]; then
+        printf -v "$NUMERIC_FIELD" '%s' 0
+    fi
+done
 
-if [[ -z "$POKEMON_DATA" || "$POKEMON_DATA" == "null" ]]; then
-    pf_die "No se pudo leer la información de: $POKEMON_KEY"
+NUMBER="$(printf '%03d' "$ID")"
+
+# ────────────────────────────────────────────────────────────────
+# Encontrar imagen
+# ────────────────────────────────────────────────────────────────
+
+SELECTED_IMAGE=""
+
+if [[ -n "$IMAGE_VALUE" ]]; then
+    if [[ "$IMAGE_VALUE" = /* && -f "$IMAGE_VALUE" ]]; then
+        SELECTED_IMAGE="$IMAGE_VALUE"
+    elif [[ -f "$POKEMON_DIR/$IMAGE_VALUE" ]]; then
+        SELECTED_IMAGE="$POKEMON_DIR/$IMAGE_VALUE"
+    fi
+fi
+
+if [[ -z "$SELECTED_IMAGE" && -n "$API_NAME" ]]; then
+    SELECTED_IMAGE="$(
+        find "$POKEMON_DIR" \
+            -type f \
+            \( \
+                -iname "$API_NAME.png" \
+                -o -iname "$API_NAME.webp" \
+                -o -iname "$API_NAME.gif" \
+            \) \
+            2>/dev/null |
+            head -n 1
+    )"
+fi
+
+if [[ -z "$SELECTED_IMAGE" ]]; then
+    SELECTED_IMAGE="$(
+        find "$POKEMON_DIR" \
+            -type f \
+            \( \
+                -iname "$POKEMON_KEY.png" \
+                -o -iname "$POKEMON_KEY.webp" \
+                -o -iname "$POKEMON_KEY.gif" \
+            \) \
+            2>/dev/null |
+            head -n 1
+    )"
+fi
+
+if [[ -z "$SELECTED_IMAGE" || ! -f "$SELECTED_IMAGE" ]]; then
+    pf_error "No se encontró la imagen de $NAME."
+    pf_error "Directorio consultado: $POKEMON_DIR"
+    exit 1
 fi
 
 # ────────────────────────────────────────────────────────────────
-# Leer información
+# Caché del panel
+#
+# Se comprueba antes de preparar textos, colores, layout o fuente: si el
+# panel ya existe, el renderer termina acá.
 # ────────────────────────────────────────────────────────────────
 
-ID="$(jq -r '.id // 0' <<< "$POKEMON_DATA")"
-NUMBER="$(printf '%03d' "$ID")"
-
-NAME="$(
-    jq -r '
-        .name
-        // .api_name
-        // "Desconocido"
-    ' <<< "$POKEMON_DATA"
+IMAGE_MTIME="$(
+    stat \
+        --format='%Y' \
+        "$SELECTED_IMAGE" \
+        2>/dev/null ||
+        printf '0'
 )"
 
-API_NAME="$(
-    jq -r '
-        .api_name
-        // empty
-    ' <<< "$POKEMON_DATA"
-)"
+RENDER_VERSION="pokemon-fastfetch-v2-render-7-responsive"
 
-IMAGE_VALUE="$(
-    jq -r '
-        .image
-        // empty
-    ' <<< "$POKEMON_DATA"
-)"
+read -r CACHE_HASH _ < <(
+    printf '%s' \
+        "$RENDER_VERSION" \
+        "$PANEL_WIDTH" \
+        "$PANEL_HEIGHT" \
+        "$IMAGE_MTIME" \
+        "$POKEMON_DATA" |
+        sha256sum
+)
 
-PRIMARY_TYPE="$(
-    jq -r '
-        .types[0]
-        // "normal"
-    ' <<< "$POKEMON_DATA"
-)"
+CACHE_HASH="${CACHE_HASH:0:16}"
+SAFE_KEY="${POKEMON_KEY//[^a-zA-Z0-9._-]/-}"
 
-SECONDARY_TYPE="$(
-    jq -r '
-        .types[1]
-        // empty
-    ' <<< "$POKEMON_DATA"
-)"
+FINAL_PANEL="$PANELS_DIR/${SAFE_KEY}-${CACHE_HASH}.png"
+CURRENT_PANEL="$PANELS_DIR/${SAFE_KEY}.png"
 
-REGION="$(
-    jq -r '
-        .region
-        // "Desconocida"
-    ' <<< "$POKEMON_DATA"
-)"
+if [[ -s "$FINAL_PANEL" ]]; then
+    printf '%s\n' "$FINAL_PANEL"
+    exit 0
+fi
 
-GENERATION="$(
-    jq -r '
-        .generation
-        // 0
-    ' <<< "$POKEMON_DATA"
-)"
-
-HEIGHT="$(
-    jq -r '
-        .height_m
-        // 0
-    ' <<< "$POKEMON_DATA"
-)"
-
-WEIGHT="$(
-    jq -r '
-        .weight_kg
-        // 0
-    ' <<< "$POKEMON_DATA"
-)"
-
-IS_LEGENDARY="$(
-    jq -r '
-        .legendary
-        // false
-    ' <<< "$POKEMON_DATA"
-)"
-
-IS_MYTHICAL="$(
-    jq -r '
-        .mythical
-        // false
-    ' <<< "$POKEMON_DATA"
-)"
-
-IS_BABY="$(
-    jq -r '
-        .baby
-        // false
-    ' <<< "$POKEMON_DATA"
-)"
-
-HP="$(jq -r '.stats.hp // 0' <<< "$POKEMON_DATA")"
-ATK="$(jq -r '.stats.attack // 0' <<< "$POKEMON_DATA")"
-DEF="$(jq -r '.stats.defense // 0' <<< "$POKEMON_DATA")"
-SPATK="$(jq -r '.stats.special_attack // 0' <<< "$POKEMON_DATA")"
-SPDEF="$(jq -r '.stats.special_defense // 0' <<< "$POKEMON_DATA")"
-SPEED="$(jq -r '.stats.speed // 0' <<< "$POKEMON_DATA")"
+if [[ ! -d "$PANELS_DIR" || ! -d "$TEMP_DIR" ]]; then
+    mkdir -p "$PANELS_DIR" "$TEMP_DIR"
+fi
 
 TOTAL="$((HP + ATK + DEF + SPATK + SPDEF + SPEED))"
 
@@ -724,54 +770,6 @@ SVG_SECONDARY_NAME="$(escape_xml "$SECONDARY_TYPE_NAME")"
 SVG_SECONDARY_ICON="$(escape_xml "$SECONDARY_TYPE_ICON")"
 
 # ────────────────────────────────────────────────────────────────
-# Encontrar imagen
-# ────────────────────────────────────────────────────────────────
-
-SELECTED_IMAGE=""
-
-if [[ -n "$IMAGE_VALUE" ]]; then
-    if [[ "$IMAGE_VALUE" = /* && -f "$IMAGE_VALUE" ]]; then
-        SELECTED_IMAGE="$IMAGE_VALUE"
-    elif [[ -f "$POKEMON_DIR/$IMAGE_VALUE" ]]; then
-        SELECTED_IMAGE="$POKEMON_DIR/$IMAGE_VALUE"
-    fi
-fi
-
-if [[ -z "$SELECTED_IMAGE" && -n "$API_NAME" ]]; then
-    SELECTED_IMAGE="$(
-        find "$POKEMON_DIR" \
-            -type f \
-            \( \
-                -iname "$API_NAME.png" \
-                -o -iname "$API_NAME.webp" \
-                -o -iname "$API_NAME.gif" \
-            \) \
-            2>/dev/null |
-            head -n 1
-    )"
-fi
-
-if [[ -z "$SELECTED_IMAGE" ]]; then
-    SELECTED_IMAGE="$(
-        find "$POKEMON_DIR" \
-            -type f \
-            \( \
-                -iname "$POKEMON_KEY.png" \
-                -o -iname "$POKEMON_KEY.webp" \
-                -o -iname "$POKEMON_KEY.gif" \
-            \) \
-            2>/dev/null |
-            head -n 1
-    )"
-fi
-
-if [[ -z "$SELECTED_IMAGE" || ! -f "$SELECTED_IMAGE" ]]; then
-    pf_error "No se encontró la imagen de $NAME."
-    pf_error "Directorio consultado: $POKEMON_DIR"
-    exit 1
-fi
-
-# ────────────────────────────────────────────────────────────────
 # Fuente
 # ────────────────────────────────────────────────────────────────
 
@@ -805,47 +803,6 @@ FONT_FILE="$(find_font || true)"
 
 if [[ -z "$FONT_FILE" ]]; then
     pf_die "No se encontró JetBrains Mono Nerd Font."
-fi
-
-# ────────────────────────────────────────────────────────────────
-# Caché del panel
-# ────────────────────────────────────────────────────────────────
-
-IMAGE_MTIME="$(
-    stat \
-        --format='%Y' \
-        "$SELECTED_IMAGE" \
-        2>/dev/null ||
-        printf '0'
-)"
-
-RENDER_VERSION="pokemon-fastfetch-v2-render-6-responsive"
-
-CACHE_HASH="$(
-    {
-        printf '%s' "$RENDER_VERSION"
-        printf '%s' "$PANEL_WIDTH"
-        printf '%s' "$PANEL_HEIGHT"
-        printf '%s' "$IMAGE_MTIME"
-        printf '%s' "$POKEMON_DATA"
-    } |
-        sha256sum |
-        awk '{print substr($1, 1, 16)}'
-)"
-
-SAFE_KEY="$(
-    printf '%s' "$POKEMON_KEY" |
-        sed 's/[^a-zA-Z0-9._-]/-/g'
-)"
-
-FINAL_PANEL="$PANELS_DIR/${SAFE_KEY}-${CACHE_HASH}.png"
-CURRENT_PANEL="$PANELS_DIR/${SAFE_KEY}.png"
-
-if [[ -s "$FINAL_PANEL" ]]; then
-    ln -sfn "$(basename "$FINAL_PANEL")" "$CURRENT_PANEL"
-
-    printf '%s\n' "$FINAL_PANEL"
-    exit 0
 fi
 
 # ────────────────────────────────────────────────────────────────
@@ -1060,7 +1017,7 @@ printf '</svg>\n' >> "$SVG_FILE"
 # Renderizar base SVG
 # ────────────────────────────────────────────────────────────────
 
-magick \
+"$MAGICK_BIN" \
     -background none \
     -density 144 \
     "$SVG_FILE" \
@@ -1071,7 +1028,7 @@ magick \
 # Preparar sprite
 # ────────────────────────────────────────────────────────────────
 
-magick \
+"$MAGICK_BIN" \
     "$SELECTED_IMAGE" \
     -coalesce \
     -delete 1--1 \
@@ -1087,7 +1044,7 @@ magick \
 # Componer panel final
 # ────────────────────────────────────────────────────────────────
 
-magick \
+"$MAGICK_BIN" \
     "$BASE_FILE" \
     "$SPRITE_FILE" \
     -geometry "+${SPRITE_PX_X}+${SPRITE_PX_Y}" \
@@ -1099,12 +1056,36 @@ if [[ ! -s "$FINAL_PANEL" ]]; then
     pf_die "No se pudo generar el panel de $NAME."
 fi
 
-ln -sfn "$(basename "$FINAL_PANEL")" "$CURRENT_PANEL"
+ln -sfn "${FINAL_PANEL##*/}" "$CURRENT_PANEL"
 
 # Limpiar temporales de este render.
 rm -f \
     "$SVG_FILE" \
     "$SPRITE_FILE" \
     "$BASE_FILE"
+
+# ────────────────────────────────────────────────────────────────
+# Limpiar caché vieja
+#
+# Cada tamaño de terminal genera un panel nuevo, así que se conservan
+# solo los PANEL_CACHE_MAX más recientes. Solo corre después de un
+# render nuevo, nunca cuando se reutiliza un panel.
+# ────────────────────────────────────────────────────────────────
+
+find "$PANELS_DIR" \
+    -maxdepth 1 \
+    -type f \
+    -name '*.png' \
+    -printf '%T@ %p\n' \
+    2>/dev/null |
+    sort -rn |
+    tail -n "+$((PANEL_CACHE_MAX + 1))" |
+    cut -d ' ' -f 2- |
+    xargs -r rm -f -- ||
+    true
+
+# Enlaces que apuntaban a paneles borrados y temporales abandonados.
+find "$PANELS_DIR" -maxdepth 1 -xtype l -delete 2>/dev/null || true
+find "$TEMP_DIR" -maxdepth 1 -type f -mmin +60 -delete 2>/dev/null || true
 
 printf '%s\n' "$FINAL_PANEL"

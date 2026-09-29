@@ -543,6 +543,44 @@ resolve_megas() {
     done
 }
 
+# Verifica un Pokémon con el renderer e imprime su clave. Si falla,
+# muestra el motivo real y una pista para solucionarlo.
+check_pokemon() {
+    local shiny_level="$1"
+    local request="$2"
+    local error_file="$CACHE_ROOT/.check-error-$$"
+    local key=""
+    local normalized="${request,,}"
+
+    key="$(
+        PF_SHINY="$shiny_level" "$RENDER_SCRIPT" --check "$request" \
+            2>"$error_file" || true
+    )"
+
+    if [[ -n "$key" ]]; then
+        rm -f "$error_file"
+        printf '%s' "$key"
+        return 0
+    fi
+
+    cat "$error_file" >&2
+    rm -f "$error_file"
+
+    normalized="${normalized// /-}"
+
+    if [[ "$normalized" == *mega* ]]; then
+        if [[ ! -s "$MEGAS_FILE" ]]; then
+            pf_info "Faltan los datos de las megaevoluciones." >&2
+            pf_info "Instalalos desde la carpeta del repositorio con: ./install.sh --yes" >&2
+        elif [[ ! -d "$POKEMON_DIR/mega" ]]; then
+            pf_info "Faltan los sprites de las megaevoluciones." >&2
+            pf_info "Descargalos desde la carpeta del repositorio con: ./download-sprites.sh --only-megas" >&2
+        fi
+    fi
+
+    exit 1
+}
+
 require_shiny_sprites() {
     local sprites=()
 
@@ -637,11 +675,7 @@ case "${1:-}" in
 
         # Comprobar que el Pokémon y su imagen existen, sin renderizar.
         # Se guarda la clave canónica (por ejemplo "25" -> "pikachu").
-        FIXED_KEY="$("$RENDER_SCRIPT" --check "$FIXED_REQUEST" 2>/dev/null || true)"
-
-        if [[ -z "$FIXED_KEY" ]]; then
-            pf_die "No se encontró el Pokémon o su imagen: $FIXED_REQUEST"
-        fi
+        FIXED_KEY="$(check_pokemon 0 "$FIXED_REQUEST")" || exit 1
 
         printf '%s\n' "$FIXED_KEY" > "$FIXED_POKEMON_FILE"
         discard_prefetched
@@ -663,13 +697,7 @@ case "${1:-}" in
             exit 1
         fi
 
-        FIXED_KEY="$(
-            PF_SHINY=2 "$RENDER_SCRIPT" --check "$FIXED_REQUEST" 2>/dev/null || true
-        )"
-
-        if [[ -z "$FIXED_KEY" ]]; then
-            pf_die "No se encontró el Pokémon o su sprite shiny: $FIXED_REQUEST"
-        fi
+        FIXED_KEY="$(check_pokemon 2 "$FIXED_REQUEST")" || exit 1
 
         printf '%s shiny\n' "$FIXED_KEY" > "$FIXED_POKEMON_FILE"
         discard_prefetched

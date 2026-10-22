@@ -1125,12 +1125,31 @@ printf '</svg>\n' >> "$SVG_FILE"
 # los compone. Antes eran tres procesos con dos PNG intermedios.
 # La compresión PNG rápida genera archivos algo más grandes pero ahorra
 # tiempo en cada render; la imagen es idéntica píxel a píxel.
+#
+# ImageMagick 6 (Debian/Ubuntu) rasteriza el SVG con su renderer interno,
+# que no entiende las listas de fuentes con comas y falla. Si está
+# rsvg-convert, el SVG se rasteriza con librsvg (lo mismo que hace
+# ImageMagick 7) y llega a ImageMagick como PNG por stdin.
 # ────────────────────────────────────────────────────────────────
 
-"$MAGICK_BIN" \
+if pf_command_exists rsvg-convert; then
+    rasterize_svg() {
+        rsvg-convert --dpi-x 144 --dpi-y 144 "$SVG_FILE"
+    }
+
+    SVG_SOURCE="png:-"
+else
+    rasterize_svg() {
+        :
+    }
+
+    SVG_SOURCE="$SVG_FILE"
+fi
+
+rasterize_svg | "$MAGICK_BIN" \
     -background none \
     -density 144 \
-    "$SVG_FILE" \
+    "$SVG_SOURCE" \
     -resize "${PANEL_WIDTH}x${PANEL_HEIGHT}!" \
     \( \
         "$SELECTED_IMAGE" \
